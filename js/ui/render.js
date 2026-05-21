@@ -16,7 +16,7 @@ export const RenderUI = {
         if (copper > 0) str.push(`<span style="color:#e69138; font-weight:bold;">${copper} Cobre</span>`);
         return str.join(' | ');
     },
-  
+
     updateHUD(playerState) {
         const rankData = GAME_CONFIG.RANKS[playerState.rank || 0];
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
@@ -58,6 +58,13 @@ export const RenderUI = {
         } else {
             btnRankup.classList.add('hidden');
         }
+    },
+    
+    updateZoneUI(zoneId) {
+        const display = document.getElementById('combat-display');
+        const zoneData = GAME_CONFIG.ZONES[zoneId] || GAME_CONFIG.ZONES[5];
+        display.className = '';
+        display.classList.add(zoneData.class);
     },
 
     log(message, type = 'info') {
@@ -183,7 +190,6 @@ export const RenderUI = {
                     container.appendChild(div);
                 });
             } else if (activeTab === 'map') {
-                // Alternador de Farming Lock
                 const toggleDiv = document.createElement('div');
                 toggleDiv.className = 'item-slot';
                 toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance ? '#3fb950' : '#da3633'};">${PlayerState.auto_advance ? 'LIGADO' : 'DESLIGADO'}</button>`;
