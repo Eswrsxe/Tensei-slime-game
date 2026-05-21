@@ -22,22 +22,20 @@ export class CombatEngine {
         RenderUI.log(`Um ${this.enemy.name} selvagem apareceu!`, "system");
         await setDoc(doc(db, "active_combats", this.combatId), { playerId: this.playerId, enemy: this.enemy.name, isLooted: false, timestamp: Date.now() });
     }
-   
-// Substitua o executePlayerTurn e executeEnemyTurn:
+
     executePlayerTurn(action) {
         if (!this.isActive) return;
         const partyBonus = VillageSystem.getPartyBonus();
         
-        // Aplica Bônus da Arma e Multiplicador de Rank
         let weaponAtk = 0;
         let lifestealRate = 0;
-        if (PlayerState.equipment.weapon) {
+        if (PlayerState.equipment && PlayerState.equipment.weapon) {
             const wpn = InventorySystem.ITEMS[PlayerState.equipment.weapon];
             weaponAtk = wpn.atk_bonus || 0;
             lifestealRate = wpn.lifesteal || 0;
         }
         
-        const rankMult = GAME_CONFIG.RANKS[PlayerState.rank].stat_mult;
+        const rankMult = GAME_CONFIG.RANKS[PlayerState.rank || 0].stat_mult;
         const baseDmg = ((SkillTree.calculateDamage() + partyBonus.atk + weaponAtk) * rankMult);
 
         if (action === 'attack') {
@@ -88,7 +86,7 @@ export class CombatEngine {
         damage = Math.max(1, damage - partyBonus.def); 
         let defMod = PlayerState.defense_modifier || 1;
         
-        if (PlayerState.equipment.armor) {
+        if (PlayerState.equipment && PlayerState.equipment.armor) {
             defMod *= InventorySystem.ITEMS[PlayerState.equipment.armor].def_mult;
         }
 
@@ -109,7 +107,68 @@ export class CombatEngine {
         else GreatSage.analyzeSituation(PlayerState);
     }
 
-// No final do arquivo, substitua o executePredator para incluir a lógica de Drop:
+    handlePlayerDeath() {
+        this.isActive = false;
+        RenderUI.log(`Corpo físico colapsou...`, "damage");
+        document.getElementById('btn-attack').disabled = true;
+        document.getElementById('btn-defend').disabled = true;
+        document.getElementById('btn-magic').disabled = true;
+        
+        setTimeout(() => {
+            PlayerState.hp_current = PlayerState.hp_max;
+            PlayerState.mp_current = PlayerState.mp_max;
+            PlayerState.active_buff = { turns: 0, effect: 1 };
+            RenderUI.updateHUD(PlayerState);
+            document.dispatchEvent(new CustomEvent('spawnNextEnemy'));
+        }, 3000);
+    }
+
+    handleEnemyDeath() {
+        this.isActive = false;
+        RenderUI.log(`O ${this.enemy.name} foi subjugado!`, "system");
+        
+        const regen = Math.floor(PlayerState.hp_max * 0.2);
+        PlayerState.hp_current = Math.min(PlayerState.hp_max, PlayerState.hp_current + regen);
+        PlayerState.active_buff = { turns: 0, effect: 1 };
+        RenderUI.updateHUD(PlayerState);
+
+        document.getElementById('btn-attack').disabled = true;
+        document.getElementById('btn-defend').disabled = true;
+        document.getElementById('btn-magic').disabled = true;
+        document.getElementById('btn-predator').disabled = false;
+        document.getElementById('btn-name-monster').disabled = false;
+        
+        const baseEnemyKey = this.enemy.id.split('_')[1] === '001' ? 'GOBLIN' : 
+                             this.enemy.id.split('_')[1] === '002' ? 'DIREWOLF' : 
+                             this.enemy.id.split('_')[1] === '003' ? 'LIZARDMAN' : 'ORC';
+        const cost = GAME_CONFIG.ENEMIES[baseEnemyKey].naming_cost;
+        document.getElementById('btn-name-monster').innerText = `Nomear (${cost} MP)`;
+    }
+
+    async finishEncounter() {
+        document.getElementById('btn-predator').disabled = true;
+        document.getElementById('btn-name-monster').disabled = true;
+        await addExperience(this.playerId, this.enemy.exp_reward);
+        
+        if (this.isBoss && PlayerState.current_zone < 5) {
+            PlayerState.current_zone += 1;
+            PlayerState.zone_progress = 0;
+            const nextZone = GAME_CONFIG.ZONES[PlayerState.current_zone];
+            RenderUI.log(`《 Grande Sábio 》 Área subjugada. Desbravando nova região: [${nextZone.name}].`, "sage");
+            RenderUI.updateZoneUI(PlayerState.current_zone);
+        } else if (!this.isBoss) {
+            PlayerState.zone_progress += 1;
+        }
+
+        await updateDoc(doc(db, "player_core", this.playerId), { 
+            current_zone: PlayerState.current_zone,
+            zone_progress: PlayerState.zone_progress
+        });
+
+        RenderUI.log("Procurando nova assinatura mágica (3s)...", "system");
+        setTimeout(() => document.dispatchEvent(new CustomEvent('spawnNextEnemy')), 3000);
+    }
+
     async executePredator() {
         RenderUI.log("Ativando [Predador]...", "system");
         try {
@@ -133,7 +192,7 @@ export class CombatEngine {
             
             RenderUI.log(`Obteve recompensa: ${RenderUI.formatCurrency(coinReward)}`);
 
-            // Sistema de Drops Lendários (Chefes têm 5% de chance)
+            // DROPS LENDÁRIOS RNG (5% em Chefes)
             if (this.isBoss && Math.random() <= 0.05) {
                 if (formKey === 'orc') {
                     await InventorySystem.addItem(this.playerId, 'lamina_desespero', 1);
@@ -159,10 +218,7 @@ export class CombatEngine {
                              this.enemy.id.split('_')[1] === '003' ? 'LIZARDMAN' : 'ORC';
         const cost = GAME_CONFIG.ENEMIES[baseEnemyKey].naming_cost;
 
-        if (PlayerState.mp_current < cost) {
-            RenderUI.log("Magicules insuficientes para conceder um nome!", "damage");
-            return;
-        }
+        if (PlayerState.mp_current < cost) return RenderUI.log("Magicules insuficientes!", "damage");
 
         RenderUI.log("Canalizando Magicules...", "system");
         try {
@@ -171,11 +227,9 @@ export class CombatEngine {
                 if (docRef.data().isLooted) throw new Error("ALREADY_LOOTED");
                 t.update(doc(db, "active_combats", this.combatId), { isLooted: true });
             });
-            
             PlayerState.mp_current -= cost;
             await updateDoc(doc(db, "player_core", this.playerId), { mp_current: PlayerState.mp_current });
             RenderUI.updateHUD(PlayerState);
-
             await VillageSystem.addSubordinate(this.playerId, GAME_CONFIG.ENEMIES[baseEnemyKey]); 
             await this.finishEncounter();
         } catch (e) { console.error(e); }
