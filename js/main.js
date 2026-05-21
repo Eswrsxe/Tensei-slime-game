@@ -60,15 +60,16 @@ function startNewEncounter() {
     } else {
         enemyKey = currentZone.enemies[Math.floor(Math.random() * currentZone.enemies.length)];
     }
-    
+  // Substitua o trecho de geração do enemyData no main.js:
     const baseEnemy = GAME_CONFIG.ENEMIES[enemyKey];
     let enemyData = { ...baseEnemy };
     
-    if (isBoss) {
-        enemyData.name = `[CHEFE] ${baseEnemy.name}`;
-        enemyData.hp_max = Math.floor(baseEnemy.hp_max * 1.5);
-        enemyData.base_damage = Math.floor(baseEnemy.base_damage * 1.3);
-        enemyData.exp_reward = baseEnemy.exp_reward * 3;
+    // Labirinto Scale: HP e Dano escalam com o Nível do Player
+    if (currentZone.scaling) {
+        const scaleMult = PlayerState.level + 2;
+        enemyData.hp_max = Math.floor(enemyData.hp_max * (scaleMult * 0.1));
+        enemyData.base_damage = Math.floor(enemyData.base_damage * (scaleMult * 0.1));
+        enemyData.exp_reward = Math.floor(enemyData.exp_reward * (scaleMult * 0.2));
     }
     
     currentCombat = new CombatEngine(auth.currentUser.uid, enemyData, isBoss);
