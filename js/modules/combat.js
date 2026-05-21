@@ -17,7 +17,6 @@ export class CombatEngine {
         this.isActive = false;
     }
 
-    // NOVO: Função para calcular e formatar a porcentagem de HP
     getHpTag() {
         const pct = Math.max(0, Math.floor((this.enemy.hp_current / this.enemy.hp_max) * 100));
         return `[${pct}% HP]`;
@@ -33,12 +32,10 @@ export class CombatEngine {
         if (!this.isActive) return;
         const partyBonus = VillageSystem.getPartyBonus();
         
-        let weaponAtk = 0;
-        let lifestealRate = 0;
+        let weaponAtk = 0; let lifestealRate = 0;
         if (PlayerState.equipment && PlayerState.equipment.weapon) {
             const wpn = InventorySystem.ITEMS[PlayerState.equipment.weapon];
-            weaponAtk = wpn.atk_bonus || 0;
-            lifestealRate = wpn.lifesteal || 0;
+            weaponAtk = wpn.atk_bonus || 0; lifestealRate = wpn.lifesteal || 0;
         }
         
         const rankMult = GAME_CONFIG.RANKS[PlayerState.rank || 0].stat_mult;
@@ -48,7 +45,6 @@ export class CombatEngine {
             const damage = Math.floor(baseDmg);
             this.enemy.hp_current -= damage;
             RenderUI.log(`${this.getHpTag()} Sua Vanguarda atacou! Causou ${damage} de dano.`);
-            
             if (lifestealRate > 0) {
                 const heal = Math.floor(damage * lifestealRate);
                 PlayerState.hp_current = Math.min(PlayerState.hp_max, PlayerState.hp_current + heal);
@@ -108,9 +104,7 @@ export class CombatEngine {
 
         if (PlayerState.equipment && PlayerState.equipment.accessory) {
             const acc = InventorySystem.ITEMS[PlayerState.equipment.accessory];
-            if (acc.mp_regen) {
-                PlayerState.mp_current = Math.min(PlayerState.mp_max, PlayerState.mp_current + acc.mp_regen);
-            }
+            if (acc.mp_regen) PlayerState.mp_current = Math.min(PlayerState.mp_max, PlayerState.mp_current + acc.mp_regen);
         }
 
         RenderUI.log(`${this.getHpTag()} O ${this.enemy.name} atacou, causando ${damage} de dano.`, "damage");
@@ -170,19 +164,27 @@ export class CombatEngine {
 
         await addExperience(this.playerId, expGained);
         
-        if (this.isBoss && PlayerState.current_zone < 5) {
-            PlayerState.current_zone += 1;
-            PlayerState.zone_progress = 0;
-            const nextZone = GAME_CONFIG.ZONES[PlayerState.current_zone];
-            RenderUI.log(`《 Grande Sábio 》 Área subjugada. Desbravando nova região: [${nextZone.name}].`, "sage");
-            RenderUI.updateZoneUI(PlayerState.current_zone);
-        } else if (!this.isBoss) {
+        if (this.isBoss) {
+            // NOVO: Controle de Farming Lock
+            if (PlayerState.auto_advance && PlayerState.current_zone < 5) {
+                PlayerState.current_zone += 1;
+                PlayerState.zone_progress = 0;
+                if (PlayerState.current_zone > PlayerState.highest_zone) PlayerState.highest_zone = PlayerState.current_zone;
+                const nextZone = GAME_CONFIG.ZONES[PlayerState.current_zone];
+                RenderUI.log(`《 Grande Sábio 》 Área subjugada. Avançando para: [${nextZone.name}].`, "sage");
+                RenderUI.updateZoneUI(PlayerState.current_zone);
+            } else {
+                PlayerState.zone_progress = 0;
+                RenderUI.log(`《 Grande Sábio 》 Chefe derrotado. Reiniciando patrulha em: [${GAME_CONFIG.ZONES[PlayerState.current_zone].name}].`, "sage");
+            }
+        } else {
             PlayerState.zone_progress += 1;
         }
 
         await updateDoc(doc(db, "player_core", this.playerId), { 
             current_zone: PlayerState.current_zone,
-            zone_progress: PlayerState.zone_progress
+            zone_progress: PlayerState.zone_progress,
+            highest_zone: PlayerState.highest_zone || PlayerState.current_zone
         });
 
         RenderUI.log("Procurando nova assinatura mágica (3s)...", "system");
