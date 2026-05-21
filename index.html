@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tensei Slime: v1.0.0 (Release)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <header id="hud">
+            <div class="player-info">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <h2 id="player-name">Slime (Sem Nome)</h2>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="btn-auto" style="background: transparent; border: 1px solid var(--sage-color); color: var(--sage-color); padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold; text-transform: uppercase;">Auto: Off</button>
+                        <button id="btn-google" style="background: #4285f4; border: 1px solid #4285f4; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold;">Salvar no Google</button>
+                    </div>
+                </div>
+                <div style="margin-top: 5px;">
+                    <span id="player-level">Lvl: 1</span> | 
+                    <span id="player-form" style="color: var(--accent-blue);">Forma: Slime</span>
+                </div>
+            </div>
+            <div class="bars">
+                <div class="bar-container"><div id="hp-bar" class="fill hp"></div><span id="hp-text">HP: --/--</span></div>
+                <div class="bar-container"><div id="mp-bar" class="fill mp"></div><span id="mp-text">MP: --/--</span></div>
+                <div class="bar-container" style="height: 10px; margin-top: 2px;"><div id="exp-bar" class="fill exp"></div><span id="exp-text" style="font-size: 9px; line-height: 10px;">EXP: --/--</span></div>
+                <div id="wallet-display">0 Cobre</div>
+            </div>
+        </header>
+
+        <main id="combat-display">
+            <div id="combat-log"></div>
+        </main>
+
+        <div id="offline-modal" class="modal hidden">
+            <div class="modal-content" style="border-color: #ffd700;">
+                <h3 style="color: #ffd700;">《 Grande Sábio 》 Relatório</h3>
+                <div id="offline-report-content" class="item-grid" style="text-align: left;"></div>
+                <button id="btn-collect-offline" class="action-btn" style="width:100%; background: #238636; border-color: #2ea043; color: white;">Coletar Recompensas</button>
+            </div>
+        </div>
+
+        <div id="skills-modal" class="modal hidden"><div class="modal-content"><h3>《 Grande Sábio 》 Mimetismo</h3><div id="forms-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
+        <div id="inventory-modal" class="modal hidden"><div class="modal-content"><h3>《 Grande Sábio 》 Estômago</h3><div id="inventory-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
+        <div id="village-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>《 Grande Sábio 》 Nação Tempest</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="tab-subs" class="tab-btn active">Cidadãos</button>
+                    <button id="tab-exped" class="tab-btn">Expedições</button>
+                    <button id="tab-upgrades" class="tab-btn">Infraestrutura</button>
+                </div>
+                <div id="village-list" class="item-grid"></div>
+                <button class="action-btn btn-close-modal" style="width:100%;">Fechar</button>
+            </div>
+        </div>
+
+        <footer id="action-panel">
+            <button id="btn-attack" class="action-btn">Atacar</button>
+            <button id="btn-defend" class="action-btn">Defender</button>
+            <button id="btn-magic" class="action-btn" style="grid-column: span 2; border-color: #58a6ff; color: #58a6ff; font-size: 12px;">Magia: Lâmina de Água</button>
+            <button id="btn-inventory" class="action-btn">Estômago</button>
+            <button id="btn-skills" class="action-btn">Mimetismo</button>
+            <button id="btn-village" class="action-btn" style="grid-column: span 2; border-color: #d2a8ff; color: #d2a8ff;">Nação Tempest</button>
+            <div style="display: flex; gap: 10px; grid-column: span 2;">
+                <button id="btn-predator" class="action-btn special" disabled style="flex: 1;">Predador</button>
+                <button id="btn-name-monster" class="action-btn" disabled style="flex: 1; background: #238636; border-color: #2ea043; color: white;">Nomear</button>
+            </div>
+        </footer>
+    </div>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
