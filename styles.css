@@ -1,0 +1,59 @@
+:root {
+    --bg-color: #0d1117; --panel-bg: #161b22; --text-main: #c9d1d9;
+    --accent-blue: #58a6ff; --hp-color: #da3633; --mp-color: #1f6feb; --sage-color: #d2a8ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+#game-container { display: flex; flex-direction: column; width: 100%; max-width: 600px; height: 100%; background-color: var(--panel-bg); }
+
+#hud { padding: 15px; background: #010409; border-bottom: 1px solid #30363d; z-index: 10;}
+.bars { margin-top: 10px; }
+.bar-container { background: #21262d; height: 18px; position: relative; margin-bottom: 5px; border-radius: 4px; overflow: hidden;}
+.fill { height: 100%; width: 100%; transition: width 0.3s ease; }
+.fill.hp { background-color: var(--hp-color); }
+.fill.mp { background-color: var(--mp-color); }
+.fill.exp { background-color: var(--sage-color); }
+.bar-container span { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; line-height: 18px; text-shadow: 1px 1px 2px #000; }
+
+#wallet-display { font-size: 12px; margin-top: 8px; text-align: center; background: #21262d; padding: 4px; border-radius: 4px; border: 1px solid #30363d;}
+
+#combat-display { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; transition: background 1s ease; }
+#combat-display.zone-1 { background: linear-gradient(to bottom, #0d1117, #1a202c); } 
+#combat-display.zone-2 { background: linear-gradient(to bottom, #0d1117, #0f291e); } 
+#combat-display.zone-3 { background: linear-gradient(to bottom, #0d1117, #2d1b2e); } 
+#combat-display.zone-4 { background: linear-gradient(to bottom, #0d1117, #3d1a1a); } 
+
+#combat-log { display: flex; flex-direction: column; gap: 8px; font-size: 14px; padding-bottom: 20px;}
+.log-entry { animation: fadeIn 0.2s ease-in; line-height: 1.4; }
+.log-entry.sage { color: var(--sage-color); font-style: italic; border-left: 2px solid var(--sage-color); padding-left: 8px; }
+.log-entry.damage { color: #ff7b72; }
+.log-entry.heal { color: #3fb950; }
+.log-entry.system { color: #8b949e; }
+.timestamp { color: #484f58; margin-right: 5px; }
+
+.modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 4, 9, 0.9); display: flex; justify-content: center; align-items: center; z-index: 100; }
+.modal.hidden { display: none; }
+.modal-content { background: var(--panel-bg); border: 1px solid #30363d; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; max-height: 80vh; overflow-y: auto;}
+.modal-content h3 { color: var(--sage-color); margin-bottom: 15px; font-style: italic; }
+
+.item-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.item-slot { display: flex; justify-content: space-between; align-items: center; background: #21262d; border: 1px solid #30363d; padding: 10px; border-radius: 4px; }
+.item-info { text-align: left; }
+.item-name { font-weight: bold; display: block; }
+.item-desc { font-size: 11px; color: #8b949e; margin-top: 3px; display: block;}
+.use-btn { background: #238636; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+.use-btn:disabled { background: #30363d; color: #8b949e; cursor: not-allowed; }
+
+#action-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; background: #010409; border-top: 1px solid #30363d; z-index: 10;}
+.action-btn { background: #21262d; color: var(--text-main); border: 1px solid #30363d; padding: 12px; font-size: 14px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-weight: bold; }
+.action-btn:active { background: #30363d; }
+.action-btn.special { grid-column: span 2; background: #1f6feb; border-color: #388bfd; }
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #21262d !important; border-color: transparent !important; color: #8b949e !important;}
+
+/* Tabs da Vila */
+.tab-btn { flex: 1; background: #21262d; border: 1px solid #30363d; color: #8b949e; padding: 8px; cursor: pointer; font-weight: bold; border-radius: 4px;}
+.tab-btn.active { background: #1f6feb; color: white; border-color: #388bfd; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
