@@ -23,7 +23,6 @@ export const GAME_CONFIG = {
         ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 }
     },
 
-    // NOVO: Motor de Eventos Interativos
     EVENTS: [
         {
             id: 'evt_mercador',
@@ -50,6 +49,18 @@ export const GAME_CONFIG = {
     QUESTS: {
         'q_goblins': { id: 'q_goblins', name: 'Ajudar o Mercador', desc: 'Derrote 10 Goblins.', target: 'mob_001', required: 10, reward_coins: 2000, reward_pots: 5, reward_exp: 500 },
         'q_lobos': { id: 'q_lobos', name: 'Fúria da Floresta', desc: 'Derrote 5 Direwolves.', target: 'mob_002', required: 5, reward_coins: 0, reward_pots: 2, reward_exp: 1500 }
+    },
+
+    // NOVO: Evento Fixo de Tutorial
+    TUTORIAL_EVENT: {
+        id: 'evt_tutorial',
+        npc: 'Voz Misteriosa',
+        text: '"Você reencarnou neste mundo. Sua jornada para construir uma nação de monstros começa agora. Deseja ouvir as instruções básicas?"',
+        options: {
+            'A': { text: '"Sim, como eu sobrevivo?"', response: '"Derrote monstros. Use o [Estômago] para equipar armas e [Tempest] para gerenciar sua vila. Pegue este presente."', reward_coins: 1000, reward_pots: 10 },
+            'B': { text: '"Já conheço as regras, pule isso."', response: '"Muito bem, anomalia. Aqui está seu suprimento inicial. Boa sorte."', reward_coins: 1000, reward_pots: 10 },
+            'C': { text: '"Não quero esmolas. Eu me viro."', response: '"Uma escolha ousada e orgulhosa. Que o mundo tenha piedade de você."' }
+        }
     },
 
     ACTIVE_SKILLS: {
