@@ -25,6 +25,9 @@ export async function initPlayer(uid) {
         if (PlayerState.highest_zone === undefined) { PlayerState.highest_zone = PlayerState.current_zone || 1; needsUpdate = true; }
         if (PlayerState.auto_advance === undefined) { PlayerState.auto_advance = true; needsUpdate = true; }
         
+        // Patch v11: Sistema de Missões
+        if (!PlayerState.quests) { PlayerState.quests = []; needsUpdate = true; }
+        
         if (needsUpdate) await setDoc(playerRef, PlayerState, { merge: true });
     } else {
         PlayerState = {
@@ -33,7 +36,8 @@ export async function initPlayer(uid) {
             mp_current: GAME_CONFIG.STARTING_STATS.MP, mp_max: GAME_CONFIG.STARTING_STATS.MP,
             defense_modifier: 1, current_form: 'slime', unlocked_forms: ['slime'],
             inventory: { 'magicule_potion': 3 }, equipment: { weapon: null, armor: null, accessory: null }, subordinates: [], last_village_update: Date.now(),
-            current_zone: 1, zone_progress: 0, highest_zone: 1, auto_advance: true, wallet: 0, upgrades: {}, active_buff: { turns: 0, effect: 1 }, expedition_zone: 1
+            current_zone: 1, zone_progress: 0, highest_zone: 1, auto_advance: true, wallet: 0, upgrades: {}, active_buff: { turns: 0, effect: 1 }, expedition_zone: 1,
+            quests: []
         };
         await setDoc(playerRef, PlayerState);
     }
@@ -73,7 +77,6 @@ export function getExpNeededForNextLevel() {
     return Math.floor(GAME_CONFIG.LEVEL_CURVE.base_exp * Math.pow(GAME_CONFIG.LEVEL_CURVE.multiplier, PlayerState.level - 1));
 }
 
-// ATUALIZADO: Gatilho do Despertar de Raphael
 export async function executeRankUp(playerId) {
     const nextRank = PlayerState.rank + 1;
     const rankData = GAME_CONFIG.RANKS[nextRank];
