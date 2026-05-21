@@ -32,13 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 startNewEncounter();
             }
-
             setupControls();
-
             setInterval(() => {
                 if (currentCombat && currentCombat.isActive) VillageSystem.processExpeditionGains(user.uid, false);
             }, 60000);
-
         } else {
             signInAnonymously(auth);
         }
@@ -63,7 +60,6 @@ function startNewEncounter() {
     const baseEnemy = GAME_CONFIG.ENEMIES[enemyKey];
     let enemyData = { ...baseEnemy };
     
-    // NOVO: Escalonamento do Labirinto (Endgame)
     if (currentZone.scaling) {
         const scaleMult = PlayerState.level + 2;
         enemyData.hp_max = Math.floor(enemyData.hp_max * (scaleMult * 0.1));
@@ -94,9 +90,12 @@ function closeAllModals() { document.querySelectorAll('.modal').forEach(modal =>
 function toggleAuto() {
     isAutoMode = !isAutoMode;
     const btn = document.getElementById('btn-auto');
-    btn.innerText = isAutoMode ? 'AUTO: ON' : 'AUTO: OFF';
-    btn.style.background = isAutoMode ? 'var(--sage-color)' : 'transparent';
-    btn.style.color = isAutoMode ? '#000' : 'var(--sage-color)';
+    const isRaphael = PlayerState.rank >= 2;
+    const aiName = isRaphael ? 'RAPHAEL' : 'AUTO';
+    
+    btn.innerText = isAutoMode ? `${aiName}: ON` : `${aiName}: OFF`;
+    btn.style.background = isAutoMode ? (isRaphael ? '#ffd700' : 'var(--sage-color)') : 'transparent';
+    btn.style.color = isAutoMode ? '#000' : (isRaphael ? '#ffd700' : 'var(--sage-color)');
     
     if (isAutoMode) {
         RenderUI.log("《 Grande Sábio 》 Controle autônomo de combate ativado.", "sage");
@@ -107,25 +106,63 @@ function toggleAuto() {
     }
 }
 
-function autoBattleLoop() {
+// O NOVO CÉREBRO DE RAPHAEL
+async function autoBattleLoop() {
     if (!isAutoMode) return;
     
     if (currentCombat) {
+        const isRaphael = PlayerState.rank >= 2;
+
         if (currentCombat.isActive && !document.getElementById('btn-attack').disabled) {
+            
+            // INTELIGÊNCIA PREDITIVA DE RAPHAEL 1: Auto-Cura de Emergência (HP <= 30%)
+            if (isRaphael && PlayerState.hp_current <= (PlayerState.hp_max * 0.3)) {
+                if (PlayerState.inventory && PlayerState.inventory['magicule_potion'] > 0) {
+                    const { InventorySystem } = await import('./modules/inventory.js');
+                    RenderUI.log("《 Grande Sábio 》 Alerta de Vitalidade. Iniciando consumo automático de Poção.", "sage");
+                    await InventorySystem.useItem(auth.currentUser.uid, 'magicule_potion', currentCombat);
+                    autoTimer = setTimeout(autoBattleLoop, 1500); 
+                    return; // Retorna para não gastar o turno de ataque
+                }
+            }
+
             const form = PlayerState.current_form || 'slime';
             const skill = GAME_CONFIG.ACTIVE_SKILLS[form];
-            
+            let useMagic = false;
+
             if (skill && PlayerState.mp_current >= skill.cost) {
-                if (skill.type === 'attack_heal' && PlayerState.hp_current === PlayerState.hp_max) {
-                    currentCombat.executePlayerTurn('attack');
-                } else if (skill.type === 'buff' && PlayerState.active_buff.turns > 0) {
-                    currentCombat.executePlayerTurn('attack');
+                useMagic = true;
+                
+                // INTELIGÊNCIA PREDITIVA DE RAPHAEL 2: Economia Letal de MP
+                if (isRaphael) {
+                    const { SkillTree } = await import('./modules/skills.js');
+                    const partyBonus = VillageSystem.getPartyBonus();
+                    let weaponAtk = 0;
+                    if (PlayerState.equipment && PlayerState.equipment.weapon) {
+                        const { InventorySystem } = await import('./modules/inventory.js');
+                        weaponAtk = InventorySystem.ITEMS[PlayerState.equipment.weapon].atk_bonus || 0;
+                    }
+                    const rankMult = GAME_CONFIG.RANKS[PlayerState.rank].stat_mult;
+                    const baseDmg = Math.floor((SkillTree.calculateDamage() + partyBonus.atk + weaponAtk) * rankMult);
+                    
+                    // Se o dano base for suficiente para matar, NÃO GASTE MAGIA.
+                    if (currentCombat.enemy.hp_current <= baseDmg) {
+                        useMagic = false;
+                    } else if (skill.type === 'buff' && PlayerState.active_buff.turns > 0) {
+                        useMagic = false;
+                    } else if (skill.type === 'attack_heal' && PlayerState.hp_current === PlayerState.hp_max) {
+                        useMagic = false;
+                    }
                 } else {
-                    currentCombat.executePlayerTurn('magic');
+                    // Lógica Básica (Grande Sábio Burro)
+                    if (skill.type === 'attack_heal' && PlayerState.hp_current === PlayerState.hp_max) useMagic = false;
+                    if (skill.type === 'buff' && PlayerState.active_buff.turns > 0) useMagic = false;
                 }
-            } else {
-                currentCombat.executePlayerTurn('attack');
             }
+
+            if (useMagic) currentCombat.executePlayerTurn('magic');
+            else currentCombat.executePlayerTurn('attack');
+
         } else if (!currentCombat.isActive && !document.getElementById('btn-predator').disabled) {
             currentCombat.executePredator();
         }
@@ -149,12 +186,9 @@ function setupControls() {
     document.getElementById('tab-subs').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'subs');
     document.getElementById('tab-exped').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'exped');
     document.getElementById('tab-upgrades').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'upgrades');
+    document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
     
     document.getElementById('btn-auto').onclick = () => toggleAuto();
-  
-    document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
-
-    // Evento de Rank UP (Evolução)
     document.getElementById('btn-rankup').onclick = () => { executeRankUp(auth.currentUser.uid); };
 
     document.getElementById('btn-google').onclick = async () => {
