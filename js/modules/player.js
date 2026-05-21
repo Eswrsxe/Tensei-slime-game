@@ -24,9 +24,10 @@ export async function initPlayer(uid) {
         if (!PlayerState.equipment) { PlayerState.equipment = { weapon: null, armor: null, accessory: null }; needsUpdate = true; }
         if (PlayerState.highest_zone === undefined) { PlayerState.highest_zone = PlayerState.current_zone || 1; needsUpdate = true; }
         if (PlayerState.auto_advance === undefined) { PlayerState.auto_advance = true; needsUpdate = true; }
-        
-        // Patch v11: Sistema de Missões
         if (!PlayerState.quests) { PlayerState.quests = []; needsUpdate = true; }
+        
+        // NOVO: Flag do Tutorial
+        if (PlayerState.has_seen_tutorial === undefined) { PlayerState.has_seen_tutorial = false; needsUpdate = true; }
         
         if (needsUpdate) await setDoc(playerRef, PlayerState, { merge: true });
     } else {
@@ -37,7 +38,7 @@ export async function initPlayer(uid) {
             defense_modifier: 1, current_form: 'slime', unlocked_forms: ['slime'],
             inventory: { 'magicule_potion': 3 }, equipment: { weapon: null, armor: null, accessory: null }, subordinates: [], last_village_update: Date.now(),
             current_zone: 1, zone_progress: 0, highest_zone: 1, auto_advance: true, wallet: 0, upgrades: {}, active_buff: { turns: 0, effect: 1 }, expedition_zone: 1,
-            quests: []
+            quests: [], has_seen_tutorial: false // Novo jogador começa com false
         };
         await setDoc(playerRef, PlayerState);
     }
