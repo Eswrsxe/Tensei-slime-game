@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tensei Slime: v2.2 (Mapa e Farming)</title>
+    <title>Tensei Slime: v4.0 (Guilda e Eventos)</title>
     <link rel="stylesheet" href="styles.css">
     <style>.hidden { display: none !important; }</style>
 </head>
@@ -32,6 +32,11 @@
         </header>
 
         <main id="combat-display"><div id="combat-log"></div></main>
+
+        <div id="chat-panel" class="hidden" style="display: flex; gap: 5px; padding: 10px; background: var(--panel-bg); border-top: 1px solid #30363d; margin-top: auto;">
+            <input type="text" id="chat-input" placeholder="Responda A, B ou C..." autocomplete="off" style="flex: 1; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; text-transform: uppercase;">
+            <button id="btn-send-chat" class="action-btn" style="width: auto; background: #238636; border-color: #2ea043; color: white;">Falar</button>
+        </div>
 
         <div id="offline-modal" class="modal hidden"><div class="modal-content" style="border-color: #ffd700;"><h3 style="color: #ffd700;">《 Grande Sábio 》 Relatório</h3><div id="offline-report-content" class="item-grid" style="text-align: left;"></div><button id="btn-collect-offline" class="action-btn" style="width:100%; background: #238636; border-color: #2ea043; color: white;">Coletar</button></div></div>
         <div id="skills-modal" class="modal hidden"><div class="modal-content"><h3>《 Grande Sábio 》 Mimetismo</h3><div id="forms-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
@@ -63,13 +68,16 @@
             </div>
         </div>
 
+        <div id="guild-modal" class="modal hidden"><div class="modal-content"><h3 style="color: #f778ba;">Associação de Aventureiros</h3><div id="quest-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
+
         <footer id="action-panel">
             <button id="btn-attack" class="action-btn">Atacar</button>
             <button id="btn-defend" class="action-btn">Defender</button>
             <button id="btn-magic" class="action-btn" style="grid-column: span 2; border-color: #58a6ff; color: #58a6ff; font-size: 12px;">Magia: Lâmina de Água</button>
             <button id="btn-inventory" class="action-btn">Estômago</button>
             <button id="btn-skills" class="action-btn">Mimetismo</button>
-            <button id="btn-village" class="action-btn" style="grid-column: span 2; border-color: #d2a8ff; color: #d2a8ff;">Nação Tempest</button>
+            <button id="btn-guild" class="action-btn" style="border-color: #f778ba; color: #f778ba;">Guilda</button>
+            <button id="btn-village" class="action-btn" style="border-color: #d2a8ff; color: #d2a8ff;">Tempest</button>
             <div style="display: flex; gap: 10px; grid-column: span 2;"><button id="btn-predator" class="action-btn special" disabled style="flex: 1;">Predador</button><button id="btn-name-monster" class="action-btn" disabled style="flex: 1; background: #238636; border-color: #2ea043; color: white;">Nomear</button></div>
         </footer>
     </div>
