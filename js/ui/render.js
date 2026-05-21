@@ -43,7 +43,6 @@ export const RenderUI = {
         const skill = GAME_CONFIG.ACTIVE_SKILLS[currentForm];
         if (skill) document.getElementById('btn-magic').innerText = `Magia: ${skill.name} (${skill.cost} MP)`;
 
-        // Mostra o botão de Rank UP se atingir o Nível necessário
         const btnRankup = document.getElementById('btn-rankup');
         const nextRankData = GAME_CONFIG.RANKS[(playerState.rank || 0) + 1];
         if (nextRankData && playerState.level >= nextRankData.req_lvl) {
@@ -100,11 +99,13 @@ export const RenderUI = {
 
     renderInventoryModal(playerId, combatEngine) {
         import('../modules/inventory.js').then(({ InventorySystem }) => {
-            // Atualiza os nomes no Painel de Loadout
             const wpnId = PlayerState.equipment?.weapon;
             const armId = PlayerState.equipment?.armor;
+            const accId = PlayerState.equipment?.accessory;
+            
             document.getElementById('eqp-weapon').innerText = wpnId ? InventorySystem.ITEMS[wpnId].name : 'Vazio';
             document.getElementById('eqp-armor').innerText = armId ? InventorySystem.ITEMS[armId].name : 'Vazio';
+            document.getElementById('eqp-accessory').innerText = accId ? InventorySystem.ITEMS[accId].name : 'Vazio';
 
             const container = document.getElementById('inventory-list');
             container.innerHTML = '';
@@ -114,19 +115,13 @@ export const RenderUI = {
                 const item = InventorySystem.ITEMS[itemId];
                 if (!item) return;
 
-                const isEquipped = (wpnId === itemId || armId === itemId);
+                const isEquipped = (wpnId === itemId || armId === itemId || accId === itemId);
                 const btnColor = isEquipped ? '#da3633' : '#1f6feb';
                 const btnText = item.type === 'consumable' ? 'Consumir' : (isEquipped ? 'Retirar' : 'Equipar');
 
                 const div = document.createElement('div');
                 div.className = 'item-slot';
-                div.innerHTML = `
-                    <div class="item-info" style="flex:1;">
-                        <span class="item-name" style="color: ${item.type === 'consumable' ? '#c9d1d9' : '#d2a8ff'};">${item.name} (x${qty})</span>
-                        <span class="item-desc">${item.desc}</span>
-                    </div>
-                    <button class="use-btn" style="background: ${item.type === 'consumable' ? '#238636' : btnColor};">${btnText}</button>
-                `;
+                div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color: ${item.type === 'consumable' ? '#c9d1d9' : '#d2a8ff'};">${item.name} (x${qty})</span><span class="item-desc">${item.desc}</span></div><button class="use-btn" style="background: ${item.type === 'consumable' ? '#238636' : btnColor};">${btnText}</button>`;
                 
                 div.querySelector('.use-btn').onclick = () => {
                     if (item.type === 'consumable') InventorySystem.useItem(playerId, itemId, combatEngine);
@@ -144,6 +139,7 @@ export const RenderUI = {
             document.getElementById('tab-subs').classList.toggle('active', activeTab === 'subs');
             document.getElementById('tab-exped').classList.toggle('active', activeTab === 'exped');
             document.getElementById('tab-upgrades').classList.toggle('active', activeTab === 'upgrades');
+            document.getElementById('tab-map').classList.toggle('active', activeTab === 'map');
 
             if (activeTab === 'subs') {
                 if (!PlayerState.subordinates || PlayerState.subordinates.length === 0) return container.innerHTML = '<p style="color:#8b949e; font-size:12px;">Sua vila está vazia.</p>';
@@ -159,7 +155,7 @@ export const RenderUI = {
                 const currentExped = PlayerState.expedition_zone || 1;
                 Object.keys(GAME_CONFIG.ZONES).forEach(zId => {
                     const zoneId = parseInt(zId);
-                    if (zoneId <= PlayerState.current_zone) {
+                    if (zoneId <= PlayerState.highest_zone) {
                         const zone = GAME_CONFIG.ZONES[zoneId];
                         const isActive = currentExped === zoneId;
                         const div = document.createElement('div');
@@ -179,6 +175,26 @@ export const RenderUI = {
                     div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name">${upg.name} [Nv.${currentLevel}/${upg.max_level}]</span><span class="item-desc">${upg.desc}</span><span class="item-desc" style="margin-top:5px;">Custo: ${isMax ? 'MÁXIMO' : this.formatCurrency(cost)}</span></div><button class="use-btn" ${isMax || PlayerState.wallet < cost ? 'disabled' : ''}>Comprar</button>`;
                     if (!isMax) div.querySelector('.use-btn').onclick = () => VillageSystem.buyUpgrade(playerId, upg.id);
                     container.appendChild(div);
+                });
+            } else if (activeTab === 'map') {
+                // Alternador de Farming Lock
+                const toggleDiv = document.createElement('div');
+                toggleDiv.className = 'item-slot';
+                toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance ? '#3fb950' : '#da3633'};">${PlayerState.auto_advance ? 'LIGADO' : 'DESLIGADO'}</button>`;
+                toggleDiv.querySelector('.use-btn').onclick = () => VillageSystem.toggleAutoAdvance(playerId);
+                container.appendChild(toggleDiv);
+
+                Object.keys(GAME_CONFIG.ZONES).forEach(zId => {
+                    const zoneId = parseInt(zId);
+                    if (zoneId <= PlayerState.highest_zone) {
+                        const zone = GAME_CONFIG.ZONES[zoneId];
+                        const isActive = PlayerState.current_zone === zoneId;
+                        const div = document.createElement('div');
+                        div.className = 'item-slot';
+                        div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:${isActive ? '#58a6ff' : '#c9d1d9'}">${zone.name}</span><span class="item-desc">Área Desbloqueada</span></div><button class="use-btn" style="background:${isActive ? '#21262d' : '#1f6feb'}; color:${isActive ? '#8b949e' : '#fff'};" ${isActive ? 'disabled' : ''}>${isActive ? 'Atual' : 'Viajar'}</button>`;
+                        if (!isActive) div.querySelector('.use-btn').onclick = () => VillageSystem.travelToZone(playerId, zoneId);
+                        container.appendChild(div);
+                    }
                 });
             }
         });
