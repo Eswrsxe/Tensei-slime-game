@@ -115,14 +115,14 @@ async function autoBattleLoop() {
 
         if (currentCombat.isActive && !document.getElementById('btn-attack').disabled) {
             
-            // INTELIGÊNCIA PREDITIVA DE RAPHAEL 1: Auto-Cura de Emergência (HP <= 30%)
+            // INTELIGÊNCIA PREDITIVA DE RAPHAEL 1: Auto-Cura de Emergência
             if (isRaphael && PlayerState.hp_current <= (PlayerState.hp_max * 0.3)) {
                 if (PlayerState.inventory && PlayerState.inventory['magicule_potion'] > 0) {
                     const { InventorySystem } = await import('./modules/inventory.js');
                     RenderUI.log("《 Grande Sábio 》 Alerta de Vitalidade. Iniciando consumo automático de Poção.", "sage");
                     await InventorySystem.useItem(auth.currentUser.uid, 'magicule_potion', currentCombat);
                     autoTimer = setTimeout(autoBattleLoop, 1500); 
-                    return; // Retorna para não gastar o turno de ataque
+                    return; 
                 }
             }
 
@@ -133,7 +133,7 @@ async function autoBattleLoop() {
             if (skill && PlayerState.mp_current >= skill.cost) {
                 useMagic = true;
                 
-                // INTELIGÊNCIA PREDITIVA DE RAPHAEL 2: Economia Letal de MP
+                // INTELIGÊNCIA PREDITIVA DE RAPHAEL 2: Economia Letal
                 if (isRaphael) {
                     const { SkillTree } = await import('./modules/skills.js');
                     const partyBonus = VillageSystem.getPartyBonus();
@@ -145,7 +145,6 @@ async function autoBattleLoop() {
                     const rankMult = GAME_CONFIG.RANKS[PlayerState.rank].stat_mult;
                     const baseDmg = Math.floor((SkillTree.calculateDamage() + partyBonus.atk + weaponAtk) * rankMult);
                     
-                    // Se o dano base for suficiente para matar, NÃO GASTE MAGIA.
                     if (currentCombat.enemy.hp_current <= baseDmg) {
                         useMagic = false;
                     } else if (skill.type === 'buff' && PlayerState.active_buff.turns > 0) {
@@ -154,7 +153,6 @@ async function autoBattleLoop() {
                         useMagic = false;
                     }
                 } else {
-                    // Lógica Básica (Grande Sábio Burro)
                     if (skill.type === 'attack_heal' && PlayerState.hp_current === PlayerState.hp_max) useMagic = false;
                     if (skill.type === 'buff' && PlayerState.active_buff.turns > 0) useMagic = false;
                 }
