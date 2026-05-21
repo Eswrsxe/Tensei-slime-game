@@ -7,11 +7,12 @@ import { CombatEngine } from './modules/combat.js';
 import { RenderUI } from './ui/render.js';
 import { GAME_CONFIG } from './data/gameConfig.js';
 import { VillageSystem } from './modules/village.js';
+import { InventorySystem } from './modules/inventory.js';
 
 let currentCombat = null;
 let isAutoMode = false;
 let autoTimer = null;
-let activeEvent = null; // Controla se estamos num evento de texto
+let activeEvent = null; 
 
 document.addEventListener('DOMContentLoaded', () => {
     RenderUI.log("Sistema Inicializando...", "system");
@@ -48,7 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('spawnNextEnemy', () => startNewEncounter());
 
 function startNewEncounter() {
-    // NOVO MOTOR RNG (15% de chance de Evento Textual se não for a luta do Chefe)
+    // 1. CHECAGEM DE TUTORIAL PRIMEIRO
+    if (!PlayerState.has_seen_tutorial && !isAutoMode) {
+        triggerTutorialEvent();
+        return;
+    }
+
+    // 2. CHECAGEM DE EVENTO ALEATÓRIO (15%)
     const zoneLevel = PlayerState.current_zone > 5 ? 5 : PlayerState.current_zone;
     const currentZone = GAME_CONFIG.ZONES[zoneLevel];
     const isBossFight = PlayerState.zone_progress >= currentZone.kills_to_boss;
@@ -58,8 +65,7 @@ function startNewEncounter() {
         return;
     }
 
-    let enemyKey = '';
-    let isBoss = false;
+    let enemyKey = ''; let isBoss = false;
 
     if (isBossFight) {
         enemyKey = currentZone.boss;
@@ -97,11 +103,27 @@ function startNewEncounter() {
     document.getElementById('btn-name-monster').innerText = 'Nomear (MP)';
 }
 
-// MOTOR DE EVENTOS DE TEXTO
+// MOTOR DE EVENTOS DE TEXTO E TUTORIAL
+function triggerTutorialEvent() {
+    activeEvent = GAME_CONFIG.TUTORIAL_EVENT;
+    activeEvent.isTutorial = true; // Marca que é um tutorial
+    
+    document.getElementById('btn-attack').disabled = true;
+    document.getElementById('btn-defend').disabled = true;
+    document.getElementById('btn-magic').disabled = true;
+    document.getElementById('chat-panel').classList.remove('hidden');
+
+    RenderUI.log(`《 Grande Sábio 》 Uma voz ecoa em sua consciência recém-formada...`, "sage");
+    RenderUI.log(`[NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
+    RenderUI.log(`[A] ${activeEvent.options['A'].text}`, "system");
+    RenderUI.log(`[B] ${activeEvent.options['B'].text}`, "system");
+    RenderUI.log(`[C] ${activeEvent.options['C'].text}`, "system");
+}
+
 function triggerRandomEvent() {
     activeEvent = GAME_CONFIG.EVENTS[Math.floor(Math.random() * GAME_CONFIG.EVENTS.length)];
+    activeEvent.isTutorial = false;
     
-    // Esconde os botões de luta, mostra o painel de chat
     document.getElementById('btn-attack').disabled = true;
     document.getElementById('btn-defend').disabled = true;
     document.getElementById('btn-magic').disabled = true;
@@ -130,8 +152,17 @@ function processChatInput() {
     setTimeout(async () => {
         RenderUI.log(`[NPC] ${activeEvent.npc}: ${choice.response}`, "info");
         
+        // Distribuição de Recompensas e Itens (Kit Inicial)
+        if (choice.reward_coins) {
+            PlayerState.wallet += choice.reward_coins;
+            RenderUI.log(`Você recebeu ${choice.reward_coins} Cobres!`, "sage");
+        }
+        if (choice.reward_pots) {
+            await InventorySystem.addItem(auth.currentUser.uid, 'magicule_potion', choice.reward_pots);
+            RenderUI.log(`Você recebeu ${choice.reward_pots}x Poção de Magicule!`, "sage");
+        }
+
         if (choice.quest) {
-            // Verifica se já não tem a quest
             if (!PlayerState.quests.find(q => q.id === choice.quest)) {
                 PlayerState.quests.push({ id: choice.quest, progress: 0 });
                 await updateDoc(doc(db, "player_core", auth.currentUser.uid), { quests: PlayerState.quests });
@@ -139,6 +170,16 @@ function processChatInput() {
             } else {
                 RenderUI.log(`《 Grande Sábio 》 Você já está executando esta missão.`, "sage");
             }
+        }
+        
+        // Se for o tutorial, salva a flag para nunca mais aparecer
+        if (activeEvent.isTutorial) {
+            PlayerState.has_seen_tutorial = true;
+            await updateDoc(doc(db, "player_core", auth.currentUser.uid), { 
+                has_seen_tutorial: true,
+                wallet: PlayerState.wallet
+            });
+            RenderUI.updateHUD(PlayerState);
         }
         
         activeEvent = null;
@@ -181,7 +222,6 @@ async function autoBattleLoop() {
             
             if (isRaphael && PlayerState.hp_current <= (PlayerState.hp_max * 0.3)) {
                 if (PlayerState.inventory && PlayerState.inventory['magicule_potion'] > 0) {
-                    const { InventorySystem } = await import('./modules/inventory.js');
                     RenderUI.log("《 Grande Sábio 》 Alerta de Vitalidade. Iniciando consumo automático de Poção.", "sage");
                     await InventorySystem.useItem(auth.currentUser.uid, 'magicule_potion', currentCombat);
                     autoTimer = setTimeout(autoBattleLoop, 1500); 
@@ -201,7 +241,6 @@ async function autoBattleLoop() {
                     const partyBonus = VillageSystem.getPartyBonus();
                     let weaponAtk = 0;
                     if (PlayerState.equipment && PlayerState.equipment.weapon) {
-                        const { InventorySystem } = await import('./modules/inventory.js');
                         weaponAtk = InventorySystem.ITEMS[PlayerState.equipment.weapon].atk_bonus || 0;
                     }
                     const rankMult = GAME_CONFIG.RANKS[PlayerState.rank].stat_mult;
@@ -240,8 +279,6 @@ function setupControls() {
     document.getElementById('btn-skills').onclick = () => { document.getElementById('skills-modal').classList.remove('hidden'); RenderUI.renderFormsModal(auth.currentUser.uid); };
     document.getElementById('btn-inventory').onclick = () => { document.getElementById('inventory-modal').classList.remove('hidden'); RenderUI.renderInventoryModal(auth.currentUser.uid, currentCombat); };
     document.getElementById('btn-village').onclick = () => { document.getElementById('village-modal').classList.remove('hidden'); RenderUI.renderVillageModal(auth.currentUser.uid); };
-    
-    // NOVO: Botão da Guilda
     document.getElementById('btn-guild').onclick = () => { document.getElementById('guild-modal').classList.remove('hidden'); RenderUI.renderGuildModal(); };
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => { btn.onclick = () => closeAllModals(); });
@@ -251,7 +288,6 @@ function setupControls() {
     document.getElementById('tab-upgrades').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'upgrades');
     document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
     
-    // EVENTOS DE CHAT
     document.getElementById('btn-send-chat').onclick = () => processChatInput();
     document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') processChatInput(); });
 
