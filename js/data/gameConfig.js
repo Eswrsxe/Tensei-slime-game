@@ -2,18 +2,17 @@ export const GAME_CONFIG = {
     STARTING_STATS: { HP: 50, MP: 20 },
     LEVEL_CURVE: { base_exp: 50, multiplier: 1.5 },
     
-    // Nível de Espécie (Rank UP)
     RANKS: {
-        0: { name: "Slime", stat_mult: 1, req_lvl: 0 },
+        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0 },
         1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff" },
-        2: { name: "Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700" }
+        2: { name: "True Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700" }
     },
 
     ZONES: {
-        1: { name: "Caverna de Veldora", class: "zone-1", enemies: ['GOBLIN'], kills_to_boss: 4, boss: 'DIREWOLF' },
-        2: { name: "Floresta de Jura", class: "zone-2", enemies: ['GOBLIN', 'DIREWOLF'], kills_to_boss: 6, boss: 'LIZARDMAN' },
-        3: { name: "Pântano Negro", class: "zone-3", enemies: ['DIREWOLF', 'LIZARDMAN'], kills_to_boss: 8, boss: 'ORC' },
-        4: { name: "Domínio Orc", class: "zone-4", enemies: ['LIZARDMAN', 'ORC'], kills_to_boss: 10, boss: 'ORC' },
+        1: { name: "Caverna de Veldora", class: "zone-1", enemies: ['GOBLIN'], kills_to_boss: 4, boss: 'GOBLIN' }, // Drop: Colar Exp
+        2: { name: "Floresta de Jura", class: "zone-2", enemies: ['GOBLIN', 'DIREWOLF'], kills_to_boss: 6, boss: 'DIREWOLF' }, // Drop: Anel MP
+        3: { name: "Pântano Negro", class: "zone-3", enemies: ['DIREWOLF', 'LIZARDMAN'], kills_to_boss: 8, boss: 'LIZARDMAN' }, // Drop: Escama
+        4: { name: "Domínio Orc", class: "zone-4", enemies: ['LIZARDMAN', 'ORC'], kills_to_boss: 10, boss: 'ORC' }, // Drop: Lâmina Lifesteal
         5: { name: "Labirinto de Ramiris", class: "zone-3", enemies: ['GOBLIN', 'DIREWOLF', 'LIZARDMAN', 'ORC'], kills_to_boss: 15, boss: 'ORC', scaling: true }
     },
 
