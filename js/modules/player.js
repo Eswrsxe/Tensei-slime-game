@@ -3,7 +3,6 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/f
 import { RenderUI } from '../ui/render.js';
 import { GAME_CONFIG } from '../data/gameConfig.js';
 import { GreatSage } from './greatsage.js';
-import { VillageSystem } from './village.js';
 
 export let PlayerState = null;
 
@@ -23,8 +22,6 @@ export async function initPlayer(uid) {
         if (!PlayerState.expedition_zone) { PlayerState.expedition_zone = 1; needsUpdate = true; }
         if (PlayerState.rank === undefined) { PlayerState.rank = 0; needsUpdate = true; }
         if (!PlayerState.equipment) { PlayerState.equipment = { weapon: null, armor: null, accessory: null }; needsUpdate = true; }
-        
-        // Patch v10: Mapa e Farming Lock
         if (PlayerState.highest_zone === undefined) { PlayerState.highest_zone = PlayerState.current_zone || 1; needsUpdate = true; }
         if (PlayerState.auto_advance === undefined) { PlayerState.auto_advance = true; needsUpdate = true; }
         
@@ -76,6 +73,7 @@ export function getExpNeededForNextLevel() {
     return Math.floor(GAME_CONFIG.LEVEL_CURVE.base_exp * Math.pow(GAME_CONFIG.LEVEL_CURVE.multiplier, PlayerState.level - 1));
 }
 
+// ATUALIZADO: Gatilho do Despertar de Raphael
 export async function executeRankUp(playerId) {
     const nextRank = PlayerState.rank + 1;
     const rankData = GAME_CONFIG.RANKS[nextRank];
@@ -97,6 +95,11 @@ export async function executeRankUp(playerId) {
         hp_current: PlayerState.hp_current, mp_current: PlayerState.mp_current
     }, { merge: true });
 
-    RenderUI.log(`《 Anomalia Detectada 》 Evolução de Espécie Concluída. Você renasceu como: ${rankData.name}!`, "sage");
+    if (nextRank === 2) {
+        RenderUI.log(`<span style="color:#ffd700; font-weight:bold; text-shadow: 0 0 10px #ffd700;">《 AVISO DO SISTEMA 》 O indivíduo atingiu as condições requeridas. A Habilidade Única [Grande Sábio] evoluiu com sucesso para a Habilidade Final [Rei da Sabedoria, Raphael].</span>`, "sage");
+    } else {
+        RenderUI.log(`《 Anomalia Detectada 》 Evolução de Espécie Concluída. Você renasceu como: ${rankData.name}!`, "sage");
+    }
+    
     RenderUI.updateHUD(PlayerState);
 }
