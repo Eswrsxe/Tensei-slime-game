@@ -4,9 +4,9 @@ export const GAME_CONFIG = {
     
     // Nível de Espécie (Rank UP)
     RANKS: {
-        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0 },
+        0: { name: "Slime", stat_mult: 1, req_lvl: 0 },
         1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff" },
-        2: { name: "True Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700" }
+        2: { name: "Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700" }
     },
 
     ZONES: {
