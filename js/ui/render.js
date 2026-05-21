@@ -43,7 +43,6 @@ export const RenderUI = {
         const skill = GAME_CONFIG.ACTIVE_SKILLS[currentForm];
         if (skill) document.getElementById('btn-magic').innerText = `Magia: ${skill.name} (${skill.cost} MP)`;
 
-        // Botão Auto muda para Raphael
         const btnAuto = document.getElementById('btn-auto');
         if (!btnAuto.innerText.includes('ON')) {
             btnAuto.innerText = (playerState.rank >= 2) ? 'RAPHAEL: OFF' : 'AUTO: OFF';
@@ -68,7 +67,6 @@ export const RenderUI = {
     },
 
     log(message, type = 'info') {
-        // Interceptador Visual de Raphael
         if (PlayerState && PlayerState.rank >= 2) {
             message = message.replace('《 Grande Sábio 》', '<span style="color:#ffd700; font-style:italic; text-shadow: 0 0 5px #ffd700;">《 Raphael, Rei da Sabedoria 》</span>');
         }
@@ -96,6 +94,36 @@ export const RenderUI = {
         `;
     },
 
+    // NOVO: Renderiza a Guilda e as Missões Ativas
+    renderGuildModal() {
+        const container = document.getElementById('quest-list');
+        container.innerHTML = '';
+        if (!PlayerState.quests || PlayerState.quests.length === 0) {
+            return container.innerHTML = '<p style="color:#8b949e; font-size:12px;">Nenhuma missão ativa no momento.</p>';
+        }
+
+        PlayerState.quests.forEach(quest => {
+            const qData = GAME_CONFIG.QUESTS[quest.id];
+            if (!qData) return;
+            const pct = Math.floor((quest.progress / qData.required) * 100);
+            
+            const div = document.createElement('div');
+            div.className = 'item-slot';
+            div.innerHTML = `
+                <div class="item-info" style="flex:1;">
+                    <span class="item-name" style="color:#f778ba;">${qData.name}</span>
+                    <span class="item-desc">${qData.desc}</span>
+                    <div style="width: 100%; background: #21262d; border-radius: 3px; margin-top: 5px; height: 5px;">
+                        <div style="width: ${pct}%; background: #f778ba; height: 100%; border-radius: 3px;"></div>
+                    </div>
+                    <span style="font-size: 10px; color: #8b949e;">Progresso: ${quest.progress}/${qData.required}</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    },
+
+    // (Outros renders continuam iguais)
     renderFormsModal(playerId) {
         import('../modules/skills.js').then(({ SkillTree }) => {
             const container = document.getElementById('forms-list');
@@ -112,10 +140,7 @@ export const RenderUI = {
 
     renderInventoryModal(playerId, combatEngine) {
         import('../modules/inventory.js').then(({ InventorySystem }) => {
-            const wpnId = PlayerState.equipment?.weapon;
-            const armId = PlayerState.equipment?.armor;
-            const accId = PlayerState.equipment?.accessory;
-            
+            const wpnId = PlayerState.equipment?.weapon; const armId = PlayerState.equipment?.armor; const accId = PlayerState.equipment?.accessory;
             document.getElementById('eqp-weapon').innerText = wpnId ? InventorySystem.ITEMS[wpnId].name : 'Vazio';
             document.getElementById('eqp-armor').innerText = armId ? InventorySystem.ITEMS[armId].name : 'Vazio';
             document.getElementById('eqp-accessory').innerText = accId ? InventorySystem.ITEMS[accId].name : 'Vazio';
@@ -127,7 +152,6 @@ export const RenderUI = {
             Object.entries(PlayerState.inventory).forEach(([itemId, qty]) => {
                 const item = InventorySystem.ITEMS[itemId];
                 if (!item) return;
-
                 const isEquipped = (wpnId === itemId || armId === itemId || accId === itemId);
                 const btnColor = isEquipped ? '#da3633' : '#1f6feb';
                 const btnText = item.type === 'consumable' ? 'Consumir' : (isEquipped ? 'Retirar' : 'Equipar');
@@ -135,11 +159,7 @@ export const RenderUI = {
                 const div = document.createElement('div');
                 div.className = 'item-slot';
                 div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color: ${item.type === 'consumable' ? '#c9d1d9' : '#d2a8ff'};">${item.name} (x${qty})</span><span class="item-desc">${item.desc}</span></div><button class="use-btn" style="background: ${item.type === 'consumable' ? '#238636' : btnColor};">${btnText}</button>`;
-                
-                div.querySelector('.use-btn').onclick = () => {
-                    if (item.type === 'consumable') InventorySystem.useItem(playerId, itemId, combatEngine);
-                    else InventorySystem.toggleEquip(playerId, itemId);
-                };
+                div.querySelector('.use-btn').onclick = () => { if (item.type === 'consumable') InventorySystem.useItem(playerId, itemId, combatEngine); else InventorySystem.toggleEquip(playerId, itemId); };
                 container.appendChild(div);
             });
         });
