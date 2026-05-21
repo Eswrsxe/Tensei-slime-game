@@ -151,6 +151,8 @@ function setupControls() {
     document.getElementById('tab-upgrades').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'upgrades');
     
     document.getElementById('btn-auto').onclick = () => toggleAuto();
+  
+    document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
 
     // Evento de Rank UP (Evolução)
     document.getElementById('btn-rankup').onclick = () => { executeRankUp(auth.currentUser.uid); };
