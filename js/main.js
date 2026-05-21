@@ -1,4 +1,4 @@
-import { auth, signInAnonymously, GoogleAuthProvider, linkWithPopup } from './firebase.js';
+import { auth, signInAnonymously, GoogleAuthProvider, linkWithPopup, signInWithPopup } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { initPlayer, PlayerState } from './modules/player.js';
 import { CombatEngine } from './modules/combat.js';
@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Oculta botão Google se já estiver vinculado
             if (user.providerData.some(p => p.providerId === 'google.com')) {
-                document.getElementById('btn-google').style.display = 'none';
+                const btnGoogle = document.getElementById('btn-google');
+                if (btnGoogle) btnGoogle.style.display = 'none';
             }
 
             const report = await VillageSystem.processExpeditionGains(user.uid, true);
@@ -39,7 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentCombat && currentCombat.isActive) VillageSystem.processExpeditionGains(user.uid, false);
             }, 60000);
 
-        } else signInAnonymously(auth);
+        } else {
+            signInAnonymously(auth);
+        }
     });
 });
 
@@ -79,7 +82,9 @@ function startNewEncounter() {
     document.getElementById('btn-name-monster').innerText = 'Nomear (MP)';
 }
 
-function closeAllModals() { document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); }
+function closeAllModals() { 
+    document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); 
+}
 
 function toggleAuto() {
     isAutoMode = !isAutoMode;
@@ -142,16 +147,25 @@ function setupControls() {
     
     document.getElementById('btn-auto').onclick = () => toggleAuto();
 
-    // Vínculo com Conta Google
+    // Vínculo com Conta Google e Sistema de Carregar Jogo (Load)
     document.getElementById('btn-google').onclick = async () => {
         const provider = new GoogleAuthProvider();
         try {
+            // Tenta vincular o jogo atual (Novo Jogador)
             const result = await linkWithPopup(auth.currentUser, provider);
             RenderUI.log(`《 Grande Sábio 》 Vínculo de Alma permanente estabelecido com: ${result.user.email}`, "sage");
             document.getElementById('btn-google').style.display = 'none';
         } catch (error) {
+            // Se a conta já existe, o jogador está retornando! Vamos baixar o save dele.
             if (error.code === 'auth/credential-already-in-use') {
-                RenderUI.log(`Erro: Esta conta Google já possui um vínculo com outro Slime.`, "damage");
+                RenderUI.log(`《 Grande Sábio 》 Memórias passadas detectadas. Sincronizando...`, "sage");
+                try {
+                    await signInWithPopup(auth, provider);
+                    // Recarrega a página para o sistema baixar a vida, nível e moedas da nuvem
+                    window.location.reload(); 
+                } catch (loginError) {
+                    RenderUI.log(`Erro ao sincronizar memórias: ${loginError.message}`, "damage");
+                }
             } else {
                 RenderUI.log(`Erro no vínculo: ${error.message}`, "damage");
             }
