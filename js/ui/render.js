@@ -18,7 +18,7 @@ export const RenderUI = {
     },
 
     updateHUD(playerState) {
-        document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : "Slime (Sem Nome)";
+        document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : "Slime";
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
         document.getElementById('player-form').innerText = `Forma: ${currentForm.toUpperCase()}`;
