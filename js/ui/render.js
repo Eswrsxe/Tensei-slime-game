@@ -18,7 +18,10 @@ export const RenderUI = {
     },
 
     updateHUD(playerState) {
-        document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : "Slime";
+        const rankData = GAME_CONFIG.RANKS[playerState.rank || 0];
+        document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
+        document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
+        
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
         document.getElementById('player-form').innerText = `Forma: ${currentForm.toUpperCase()}`;
@@ -39,11 +42,20 @@ export const RenderUI = {
 
         const skill = GAME_CONFIG.ACTIVE_SKILLS[currentForm];
         if (skill) document.getElementById('btn-magic').innerText = `Magia: ${skill.name} (${skill.cost} MP)`;
+
+        // Mostra o botão de Rank UP se atingir o Nível necessário
+        const btnRankup = document.getElementById('btn-rankup');
+        const nextRankData = GAME_CONFIG.RANKS[(playerState.rank || 0) + 1];
+        if (nextRankData && playerState.level >= nextRankData.req_lvl) {
+            btnRankup.classList.remove('hidden');
+        } else {
+            btnRankup.classList.add('hidden');
+        }
     },
     
     updateZoneUI(zoneId) {
         const display = document.getElementById('combat-display');
-        const zoneData = GAME_CONFIG.ZONES[zoneId] || GAME_CONFIG.ZONES[4];
+        const zoneData = GAME_CONFIG.ZONES[zoneId] || GAME_CONFIG.ZONES[5];
         display.className = '';
         display.classList.add(zoneData.class);
     },
@@ -88,19 +100,39 @@ export const RenderUI = {
 
     renderInventoryModal(playerId, combatEngine) {
         import('../modules/inventory.js').then(({ InventorySystem }) => {
+            // Atualiza os nomes no Painel de Loadout
+            const wpnId = PlayerState.equipment?.weapon;
+            const armId = PlayerState.equipment?.armor;
+            document.getElementById('eqp-weapon').innerText = wpnId ? InventorySystem.ITEMS[wpnId].name : 'Vazio';
+            document.getElementById('eqp-armor').innerText = armId ? InventorySystem.ITEMS[armId].name : 'Vazio';
+
             const container = document.getElementById('inventory-list');
             container.innerHTML = '';
             if (!PlayerState.inventory || Object.keys(PlayerState.inventory).length === 0) return container.innerHTML = '<p>Estômago vazio.</p>';
+            
             Object.entries(PlayerState.inventory).forEach(([itemId, qty]) => {
                 const item = InventorySystem.ITEMS[itemId];
-                if(item.heal > 0) {
-                    const div = document.createElement('div');
-                    div.className = 'item-slot';
-                    div.innerHTML = `<div class="item-info"><span class="item-name">${item.name} (x${qty})</span></div>
-                                     <button class="use-btn">Consumir</button>`;
-                    div.querySelector('.use-btn').onclick = () => InventorySystem.useItem(playerId, itemId, combatEngine);
-                    container.appendChild(div);
-                }
+                if (!item) return;
+
+                const isEquipped = (wpnId === itemId || armId === itemId);
+                const btnColor = isEquipped ? '#da3633' : '#1f6feb';
+                const btnText = item.type === 'consumable' ? 'Consumir' : (isEquipped ? 'Retirar' : 'Equipar');
+
+                const div = document.createElement('div');
+                div.className = 'item-slot';
+                div.innerHTML = `
+                    <div class="item-info" style="flex:1;">
+                        <span class="item-name" style="color: ${item.type === 'consumable' ? '#c9d1d9' : '#d2a8ff'};">${item.name} (x${qty})</span>
+                        <span class="item-desc">${item.desc}</span>
+                    </div>
+                    <button class="use-btn" style="background: ${item.type === 'consumable' ? '#238636' : btnColor};">${btnText}</button>
+                `;
+                
+                div.querySelector('.use-btn').onclick = () => {
+                    if (item.type === 'consumable') InventorySystem.useItem(playerId, itemId, combatEngine);
+                    else InventorySystem.toggleEquip(playerId, itemId);
+                };
+                container.appendChild(div);
             });
         });
     },
@@ -109,7 +141,6 @@ export const RenderUI = {
         import('../modules/village.js').then(({ VillageSystem }) => {
             const container = document.getElementById('village-list');
             container.innerHTML = '';
-            
             document.getElementById('tab-subs').classList.toggle('active', activeTab === 'subs');
             document.getElementById('tab-exped').classList.toggle('active', activeTab === 'exped');
             document.getElementById('tab-upgrades').classList.toggle('active', activeTab === 'upgrades');
@@ -120,13 +151,7 @@ export const RenderUI = {
                     const div = document.createElement('div');
                     div.className = 'item-slot';
                     const isParty = sub.role === 'party';
-                    div.innerHTML = `
-                        <div class="item-info">
-                            <span class="item-name" style="color: ${isParty ? '#ff7b72' : '#58a6ff'};">${sub.name}</span>
-                            <span class="item-desc">Status: ${isParty ? 'Lutando' : 'Trabalhando'}</span>
-                        </div>
-                        <button class="use-btn" style="background: ${isParty ? '#da3633' : '#1f6feb'};">${isParty ? 'Remover' : 'Equipar'}</button>
-                    `;
+                    div.innerHTML = `<div class="item-info"><span class="item-name" style="color: ${isParty ? '#ff7b72' : '#58a6ff'};">${sub.name}</span><span class="item-desc">Status: ${isParty ? 'Lutando' : 'Trabalhando'}</span></div><button class="use-btn" style="background: ${isParty ? '#da3633' : '#1f6feb'};">${isParty ? 'Remover' : 'Equipar'}</button>`;
                     div.querySelector('.use-btn').onclick = () => VillageSystem.toggleRole(playerId, sub.id);
                     container.appendChild(div);
                 });
@@ -139,15 +164,7 @@ export const RenderUI = {
                         const isActive = currentExped === zoneId;
                         const div = document.createElement('div');
                         div.className = 'item-slot';
-                        div.innerHTML = `
-                            <div class="item-info" style="flex:1;">
-                                <span class="item-name" style="color:${isActive ? '#3fb950' : '#c9d1d9'}">${zone.name}</span>
-                                <span class="item-desc">${isActive ? 'Expedição em Andamento...' : 'Área Desbravada'}</span>
-                            </div>
-                            <button class="use-btn" style="background:${isActive ? '#21262d' : '#1f6feb'}; color:${isActive ? '#8b949e' : '#fff'};" ${isActive ? 'disabled' : ''}>
-                                ${isActive ? 'Explorando' : 'Despachar'}
-                            </button>
-                        `;
+                        div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:${isActive ? '#3fb950' : '#c9d1d9'}">${zone.name}</span><span class="item-desc">${isActive ? 'Expedição em Andamento...' : 'Área Desbravada'}</span></div><button class="use-btn" style="background:${isActive ? '#21262d' : '#1f6feb'}; color:${isActive ? '#8b949e' : '#fff'};" ${isActive ? 'disabled' : ''}>${isActive ? 'Explorando' : 'Despachar'}</button>`;
                         if (!isActive) div.querySelector('.use-btn').onclick = () => VillageSystem.setExpeditionZone(playerId, zoneId);
                         container.appendChild(div);
                     }
@@ -157,17 +174,9 @@ export const RenderUI = {
                     const currentLevel = PlayerState.upgrades[upg.id] || 0;
                     const isMax = currentLevel >= upg.max_level;
                     const cost = Math.floor(upg.base_cost * Math.pow(1.5, currentLevel));
-                    
                     const div = document.createElement('div');
                     div.className = 'item-slot';
-                    div.innerHTML = `
-                        <div class="item-info" style="flex:1;">
-                            <span class="item-name">${upg.name} [Nv.${currentLevel}/${upg.max_level}]</span>
-                            <span class="item-desc">${upg.desc}</span>
-                            <span class="item-desc" style="margin-top:5px;">Custo: ${isMax ? 'MÁXIMO' : this.formatCurrency(cost)}</span>
-                        </div>
-                        <button class="use-btn" ${isMax || PlayerState.wallet < cost ? 'disabled' : ''}>Comprar</button>
-                    `;
+                    div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name">${upg.name} [Nv.${currentLevel}/${upg.max_level}]</span><span class="item-desc">${upg.desc}</span><span class="item-desc" style="margin-top:5px;">Custo: ${isMax ? 'MÁXIMO' : this.formatCurrency(cost)}</span></div><button class="use-btn" ${isMax || PlayerState.wallet < cost ? 'disabled' : ''}>Comprar</button>`;
                     if (!isMax) div.querySelector('.use-btn').onclick = () => VillageSystem.buyUpgrade(playerId, upg.id);
                     container.appendChild(div);
                 });
