@@ -3,7 +3,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/f
 import { RenderUI } from '../ui/render.js';
 import { GAME_CONFIG } from '../data/gameConfig.js';
 import { GreatSage } from './greatsage.js';
-
+// (Deixe as importações no topo como estão)
 export let PlayerState = null;
 
 export async function initPlayer(uid) {
@@ -19,20 +19,21 @@ export async function initPlayer(uid) {
         if (PlayerState.wallet === undefined) { PlayerState.wallet = 0; needsUpdate = true; }
         if (!PlayerState.upgrades) { PlayerState.upgrades = {}; needsUpdate = true; }
         if (!PlayerState.active_buff) { PlayerState.active_buff = { turns: 0, effect: 1 }; needsUpdate = true; }
-        
-        // Patch v8: Destino de Expedição
         if (!PlayerState.expedition_zone) { PlayerState.expedition_zone = 1; needsUpdate = true; }
+        
+        // Patch v9: Ranks e Loadout
+        if (PlayerState.rank === undefined) { PlayerState.rank = 0; needsUpdate = true; }
+        if (!PlayerState.equipment) { PlayerState.equipment = { weapon: null, armor: null }; needsUpdate = true; }
         
         if (needsUpdate) await setDoc(playerRef, PlayerState, { merge: true });
     } else {
         PlayerState = {
-            isNamed: false, name: "Slime", level: 1, exp_current: 0,
+            isNamed: false, name: "Slime", level: 1, exp_current: 0, rank: 0,
             hp_current: GAME_CONFIG.STARTING_STATS.HP, hp_max: GAME_CONFIG.STARTING_STATS.HP,
             mp_current: GAME_CONFIG.STARTING_STATS.MP, mp_max: GAME_CONFIG.STARTING_STATS.MP,
             defense_modifier: 1, current_form: 'slime', unlocked_forms: ['slime'],
-            inventory: { 'magicule_potion': 3 }, subordinates: [], last_village_update: Date.now(),
-            current_zone: 1, zone_progress: 0, wallet: 0, upgrades: {}, active_buff: { turns: 0, effect: 1 },
-            expedition_zone: 1
+            inventory: { 'magicule_potion': 3 }, equipment: { weapon: null, armor: null }, subordinates: [], last_village_update: Date.now(),
+            current_zone: 1, zone_progress: 0, wallet: 0, upgrades: {}, active_buff: { turns: 0, effect: 1 }, expedition_zone: 1
         };
         await setDoc(playerRef, PlayerState);
     }
@@ -40,6 +41,32 @@ export async function initPlayer(uid) {
     RenderUI.updateHUD(PlayerState);
     RenderUI.updateZoneUI(PlayerState.current_zone);
 }
+
+export async function executeRankUp(playerId) {
+    const nextRank = PlayerState.rank + 1;
+    const rankData = GAME_CONFIG.RANKS[nextRank];
+    if (!rankData || PlayerState.level < rankData.req_lvl) return;
+
+    PlayerState.rank = nextRank;
+    PlayerState.level = 1; // Reseta o Nível, mas ganha multiplicador massivo base
+    PlayerState.exp_current = 0;
+    
+    const mult = rankData.stat_mult;
+    PlayerState.hp_max = GAME_CONFIG.STARTING_STATS.HP * mult;
+    PlayerState.mp_max = GAME_CONFIG.STARTING_STATS.MP * mult;
+    PlayerState.hp_current = PlayerState.hp_max;
+    PlayerState.mp_current = PlayerState.mp_max;
+
+    await setDoc(doc(db, "player_core", playerId), { 
+        rank: PlayerState.rank, level: 1, exp_current: 0,
+        hp_max: PlayerState.hp_max, mp_max: PlayerState.mp_max,
+        hp_current: PlayerState.hp_current, mp_current: PlayerState.mp_current
+    }, { merge: true });
+
+    RenderUI.log(`《 Anomalia Detectada 》 Evolução de Espécie Concluída. Você renasceu como: ${rankData.name}!`, "sage");
+    RenderUI.updateHUD(PlayerState);
+}
+// (Deixe addExperience e getExpNeededForNextLevel como já estão no arquivo)
 
 export async function addExperience(playerId, amount) {
     PlayerState.exp_current += amount;
