@@ -1,4 +1,6 @@
 import { auth, signInAnonymously, GoogleAuthProvider, linkWithPopup, signInWithPopup } from './firebase.js';
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { db } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { initPlayer, PlayerState, executeRankUp } from './modules/player.js';
 import { CombatEngine } from './modules/combat.js';
@@ -9,6 +11,7 @@ import { VillageSystem } from './modules/village.js';
 let currentCombat = null;
 let isAutoMode = false;
 let autoTimer = null;
+let activeEvent = null; // Controla se estamos num evento de texto
 
 document.addEventListener('DOMContentLoaded', () => {
     RenderUI.log("Sistema Inicializando...", "system");
@@ -45,11 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('spawnNextEnemy', () => startNewEncounter());
 
 function startNewEncounter() {
+    // NOVO MOTOR RNG (15% de chance de Evento Textual se não for a luta do Chefe)
     const zoneLevel = PlayerState.current_zone > 5 ? 5 : PlayerState.current_zone;
     const currentZone = GAME_CONFIG.ZONES[zoneLevel];
-    let isBoss = false; let enemyKey = '';
+    const isBossFight = PlayerState.zone_progress >= currentZone.kills_to_boss;
 
-    if (PlayerState.zone_progress >= currentZone.kills_to_boss) {
+    if (!isBossFight && Math.random() <= 0.15 && !isAutoMode) {
+        triggerRandomEvent();
+        return;
+    }
+
+    let enemyKey = '';
+    let isBoss = false;
+
+    if (isBossFight) {
         enemyKey = currentZone.boss;
         isBoss = true;
         RenderUI.log(`《 Grande Sábio 》 Alerta: Assinatura mágica massiva detectada. O Chefe da Área se aproxima!`, "sage");
@@ -85,6 +97,59 @@ function startNewEncounter() {
     document.getElementById('btn-name-monster').innerText = 'Nomear (MP)';
 }
 
+// MOTOR DE EVENTOS DE TEXTO
+function triggerRandomEvent() {
+    activeEvent = GAME_CONFIG.EVENTS[Math.floor(Math.random() * GAME_CONFIG.EVENTS.length)];
+    
+    // Esconde os botões de luta, mostra o painel de chat
+    document.getElementById('btn-attack').disabled = true;
+    document.getElementById('btn-defend').disabled = true;
+    document.getElementById('btn-magic').disabled = true;
+    document.getElementById('chat-panel').classList.remove('hidden');
+
+    RenderUI.log(`《 Grande Sábio 》 Uma presença se aproxima pacificamente...`, "sage");
+    RenderUI.log(`[NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
+    RenderUI.log(`[A] ${activeEvent.options['A'].text}`, "system");
+    RenderUI.log(`[B] ${activeEvent.options['B'].text}`, "system");
+    RenderUI.log(`[C] ${activeEvent.options['C'].text}`, "system");
+}
+
+function processChatInput() {
+    if (!activeEvent) return;
+    const inputField = document.getElementById('chat-input');
+    const answer = inputField.value.trim().toUpperCase();
+    inputField.value = '';
+
+    if (!['A', 'B', 'C'].includes(answer)) {
+        return RenderUI.log(`《 Grande Sábio 》 Comando inválido. Use A, B ou C.`, "damage");
+    }
+
+    const choice = activeEvent.options[answer];
+    RenderUI.log(`[Você]: ${choice.text}`, "heal");
+    
+    setTimeout(async () => {
+        RenderUI.log(`[NPC] ${activeEvent.npc}: ${choice.response}`, "info");
+        
+        if (choice.quest) {
+            // Verifica se já não tem a quest
+            if (!PlayerState.quests.find(q => q.id === choice.quest)) {
+                PlayerState.quests.push({ id: choice.quest, progress: 0 });
+                await updateDoc(doc(db, "player_core", auth.currentUser.uid), { quests: PlayerState.quests });
+                RenderUI.log(`《 Grande Sábio 》 Missão Aceita: [${GAME_CONFIG.QUESTS[choice.quest].name}]. Verifique a Guilda.`, "sage");
+            } else {
+                RenderUI.log(`《 Grande Sábio 》 Você já está executando esta missão.`, "sage");
+            }
+        }
+        
+        activeEvent = null;
+        document.getElementById('chat-panel').classList.add('hidden');
+        RenderUI.log("Procurando nova assinatura mágica (3s)...", "system");
+        setTimeout(() => startNewEncounter(), 3000);
+
+    }, 1500);
+}
+
+
 function closeAllModals() { document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); }
 
 function toggleAuto() {
@@ -106,7 +171,6 @@ function toggleAuto() {
     }
 }
 
-// O NOVO CÉREBRO DE RAPHAEL
 async function autoBattleLoop() {
     if (!isAutoMode) return;
     
@@ -115,7 +179,6 @@ async function autoBattleLoop() {
 
         if (currentCombat.isActive && !document.getElementById('btn-attack').disabled) {
             
-            // INTELIGÊNCIA PREDITIVA DE RAPHAEL 1: Auto-Cura de Emergência
             if (isRaphael && PlayerState.hp_current <= (PlayerState.hp_max * 0.3)) {
                 if (PlayerState.inventory && PlayerState.inventory['magicule_potion'] > 0) {
                     const { InventorySystem } = await import('./modules/inventory.js');
@@ -133,7 +196,6 @@ async function autoBattleLoop() {
             if (skill && PlayerState.mp_current >= skill.cost) {
                 useMagic = true;
                 
-                // INTELIGÊNCIA PREDITIVA DE RAPHAEL 2: Economia Letal
                 if (isRaphael) {
                     const { SkillTree } = await import('./modules/skills.js');
                     const partyBonus = VillageSystem.getPartyBonus();
@@ -178,6 +240,9 @@ function setupControls() {
     document.getElementById('btn-skills').onclick = () => { document.getElementById('skills-modal').classList.remove('hidden'); RenderUI.renderFormsModal(auth.currentUser.uid); };
     document.getElementById('btn-inventory').onclick = () => { document.getElementById('inventory-modal').classList.remove('hidden'); RenderUI.renderInventoryModal(auth.currentUser.uid, currentCombat); };
     document.getElementById('btn-village').onclick = () => { document.getElementById('village-modal').classList.remove('hidden'); RenderUI.renderVillageModal(auth.currentUser.uid); };
+    
+    // NOVO: Botão da Guilda
+    document.getElementById('btn-guild').onclick = () => { document.getElementById('guild-modal').classList.remove('hidden'); RenderUI.renderGuildModal(); };
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => { btn.onclick = () => closeAllModals(); });
 
@@ -186,6 +251,10 @@ function setupControls() {
     document.getElementById('tab-upgrades').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'upgrades');
     document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
     
+    // EVENTOS DE CHAT
+    document.getElementById('btn-send-chat').onclick = () => processChatInput();
+    document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') processChatInput(); });
+
     document.getElementById('btn-auto').onclick = () => toggleAuto();
     document.getElementById('btn-rankup').onclick = () => { executeRankUp(auth.currentUser.uid); };
 
