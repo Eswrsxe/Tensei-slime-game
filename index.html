@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tensei Slime: v2.1.0 (Expansão de Loot)</title>
+    <title>Tensei Slime: v2.2 (Mapa e Farming)</title>
     <link rel="stylesheet" href="styles.css">
     <style>.hidden { display: none !important; }</style>
 </head>
@@ -19,10 +19,7 @@
                     </div>
                 </div>
                 <div style="margin-top: 5px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span id="player-level">Lvl: 1</span> | 
-                        <span id="player-form" style="color: var(--accent-blue);">Forma: Slime</span>
-                    </div>
+                    <div><span id="player-level">Lvl: 1</span> | <span id="player-form" style="color: var(--accent-blue);">Forma: Slime</span></div>
                     <button id="btn-rankup" class="hidden" style="background: #da3633; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;">Evoluir Espécie</button>
                 </div>
             </div>
@@ -52,7 +49,19 @@
             </div>
         </div>
 
-        <div id="village-modal" class="modal hidden"><div class="modal-content"><h3>《 Grande Sábio 》 Nação Tempest</h3><div style="display: flex; gap: 5px; margin-bottom: 10px;"><button id="tab-subs" class="tab-btn active">Cidadãos</button><button id="tab-exped" class="tab-btn">Expedições</button><button id="tab-upgrades" class="tab-btn">Infraestrutura</button></div><div id="village-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
+        <div id="village-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>《 Grande Sábio 》 Nação Tempest</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="tab-subs" class="tab-btn active">Cidadãos</button>
+                    <button id="tab-exped" class="tab-btn">Expedir</button>
+                    <button id="tab-upgrades" class="tab-btn">Infra.</button>
+                    <button id="tab-map" class="tab-btn">Mapa</button>
+                </div>
+                <div id="village-list" class="item-grid"></div>
+                <button class="action-btn btn-close-modal" style="width:100%;">Fechar</button>
+            </div>
+        </div>
 
         <footer id="action-panel">
             <button id="btn-attack" class="action-btn">Atacar</button>
