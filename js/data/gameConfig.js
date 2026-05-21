@@ -9,10 +9,10 @@ export const GAME_CONFIG = {
     },
 
     ZONES: {
-        1: { name: "Caverna de Veldora", class: "zone-1", enemies: ['GOBLIN'], kills_to_boss: 4, boss: 'GOBLIN' }, // Drop: Colar Exp
-        2: { name: "Floresta de Jura", class: "zone-2", enemies: ['GOBLIN', 'DIREWOLF'], kills_to_boss: 6, boss: 'DIREWOLF' }, // Drop: Anel MP
-        3: { name: "Pântano Negro", class: "zone-3", enemies: ['DIREWOLF', 'LIZARDMAN'], kills_to_boss: 8, boss: 'LIZARDMAN' }, // Drop: Escama
-        4: { name: "Domínio Orc", class: "zone-4", enemies: ['LIZARDMAN', 'ORC'], kills_to_boss: 10, boss: 'ORC' }, // Drop: Lâmina Lifesteal
+        1: { name: "Caverna de Veldora", class: "zone-1", enemies: ['GOBLIN'], kills_to_boss: 4, boss: 'GOBLIN' }, 
+        2: { name: "Floresta de Jura", class: "zone-2", enemies: ['GOBLIN', 'DIREWOLF'], kills_to_boss: 6, boss: 'DIREWOLF' }, 
+        3: { name: "Pântano Negro", class: "zone-3", enemies: ['DIREWOLF', 'LIZARDMAN'], kills_to_boss: 8, boss: 'LIZARDMAN' }, 
+        4: { name: "Domínio Orc", class: "zone-4", enemies: ['LIZARDMAN', 'ORC'], kills_to_boss: 10, boss: 'ORC' }, 
         5: { name: "Labirinto de Ramiris", class: "zone-3", enemies: ['GOBLIN', 'DIREWOLF', 'LIZARDMAN', 'ORC'], kills_to_boss: 15, boss: 'ORC', scaling: true }
     },
 
@@ -21,6 +21,35 @@ export const GAME_CONFIG = {
         DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55 },
         LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120 },
         ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 }
+    },
+
+    // NOVO: Motor de Eventos Interativos
+    EVENTS: [
+        {
+            id: 'evt_mercador',
+            npc: 'Mercador Errante',
+            text: '"Saudações, ser poderoso! Os Goblins estão roubando minha carga na Caverna. Pode me ajudar a derrotar 10 deles?"',
+            options: {
+                'A': { text: '"Sim, eu resolvo isso."', response: '"Maravilhoso! Lhe pagarei bem."', quest: 'q_goblins' },
+                'B': { text: '"Qual a recompensa?"', response: '"Te dou 2.000 Cobres e 5 Poções. Fechado?"', quest: 'q_goblins' },
+                'C': { text: '"Tenho mais o que fazer. Adeus."', response: '"Que pena... terei que contratar outro."', quest: null }
+            }
+        },
+        {
+            id: 'evt_espirito',
+            npc: 'Espírito da Floresta',
+            text: '"A Floresta de Jura chora... Os Direwolves estão fora de controle. Purifique 5 deles para mim?"',
+            options: {
+                'A': { text: '"Deixe comigo."', response: '"A floresta agradece."', quest: 'q_lobos' },
+                'B': { text: '"Isso é problema seu."', response: '"Como é cruel..."', quest: null },
+                'C': { text: '"Eu cuido deles, mas quero EXP."', response: '"Lhe concederei as bênçãos da floresta."', quest: 'q_lobos' }
+            }
+        }
+    ],
+
+    QUESTS: {
+        'q_goblins': { id: 'q_goblins', name: 'Ajudar o Mercador', desc: 'Derrote 10 Goblins.', target: 'mob_001', required: 10, reward_coins: 2000, reward_pots: 5, reward_exp: 500 },
+        'q_lobos': { id: 'q_lobos', name: 'Fúria da Floresta', desc: 'Derrote 5 Direwolves.', target: 'mob_002', required: 5, reward_coins: 0, reward_pots: 2, reward_exp: 1500 }
     },
 
     ACTIVE_SKILLS: {
