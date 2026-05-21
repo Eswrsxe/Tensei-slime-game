@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, signInAnonymously, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInAnonymously, GoogleAuthProvider, linkWithPopup, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCI7YAu9swUPchFITltUqURLnPf0QFHkV0",
@@ -17,4 +17,4 @@ const db = initializeFirestore(app, {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
 
-export { db, auth, signInAnonymously, GoogleAuthProvider, linkWithPopup };
+export { db, auth, signInAnonymously, GoogleAuthProvider, linkWithPopup, signInWithPopup };
