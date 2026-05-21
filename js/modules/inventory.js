@@ -5,8 +5,9 @@ import { RenderUI } from '../ui/render.js';
 
 export const InventorySystem = {
     ITEMS: {
-        'magicule_potion': { id: 'magicule_potion', name: 'Poção de Magicule Menor', heal: 15, mp_heal: 10, desc: 'Restaura 15 HP e 10 MP.' },
-        'goblin_fang': { id: 'goblin_fang', name: 'Presa de Goblin', heal: 0, mp_heal: 0, desc: 'Material.' }
+        'magicule_potion': { id: 'magicule_potion', name: 'Poção de Magicule', type: 'consumable', heal: 15, mp_heal: 10, desc: 'Restaura 15 HP/10 MP.' },
+        'lamina_desespero': { id: 'lamina_desespero', name: 'Lâmina do Desespero', type: 'weapon', atk_bonus: 50, lifesteal: 0.05, desc: '+50 ATK. Absorve 5% do dano causado.' },
+        'escama_dragao': { id: 'escama_dragao', name: 'Escama Soberana', type: 'armor', def_mult: 0.8, desc: 'Reduz todo o dano recebido em 20%.' }
     },
 
     async addItem(playerId, itemId, quantity = 1) {
@@ -15,16 +16,30 @@ export const InventorySystem = {
         await setDoc(doc(db, "player_core", playerId), { inventory: PlayerState.inventory }, { merge: true });
     },
 
-    async useItem(playerId, itemId, combatEngineInstance) {
-        if (!PlayerState.inventory || !PlayerState.inventory[itemId] || PlayerState.inventory[itemId] <= 0) return;
-        
+    async toggleEquip(playerId, itemId) {
         const item = this.ITEMS[itemId];
-        
-        if (item.heal > 0) {
-            PlayerState.hp_current = Math.min(PlayerState.hp_current + item.heal, PlayerState.hp_max);
-            PlayerState.mp_current = Math.min(PlayerState.mp_current + (item.mp_heal || 0), PlayerState.mp_max);
-            RenderUI.log(`Você consumiu [${item.name}]. Recuperou Vida e Magia.`, "heal");
+        if (!item || item.type === 'consumable') return;
+
+        if (PlayerState.equipment[item.type] === itemId) {
+            PlayerState.equipment[item.type] = null; // Desequipa
+            RenderUI.log(`Você desequipou [${item.name}].`, "system");
+        } else {
+            PlayerState.equipment[item.type] = itemId; // Equipa
+            RenderUI.log(`Você equipou [${item.name}].`, "sage");
         }
+
+        await setDoc(doc(db, "player_core", playerId), { equipment: PlayerState.equipment }, { merge: true });
+        RenderUI.renderInventoryModal(playerId);
+    },
+
+    async useItem(playerId, itemId, combatEngineInstance) {
+        const item = this.ITEMS[itemId];
+        if (!item || item.type !== 'consumable') return;
+        if (!PlayerState.inventory[itemId] || PlayerState.inventory[itemId] <= 0) return;
+
+        PlayerState.hp_current = Math.min(PlayerState.hp_current + item.heal, PlayerState.hp_max);
+        PlayerState.mp_current = Math.min(PlayerState.mp_current + (item.mp_heal || 0), PlayerState.mp_max);
+        RenderUI.log(`Você consumiu [${item.name}]. Recuperou Vida e Magia.`, "heal");
 
         PlayerState.inventory[itemId] -= 1;
         if (PlayerState.inventory[itemId] === 0) delete PlayerState.inventory[itemId];
