@@ -5,8 +5,31 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-#game-container { display: flex; flex-direction: column; width: 100%; max-width: 600px; height: 100%; background-color: var(--panel-bg); }
+/* FIX: Previne o Google Chrome de dar zoom artificial nas fontes (Font Boosting) */
+html, body {
+    -webkit-text-size-adjust: 100%; 
+    text-size-adjust: 100%;
+}
+
+body { 
+    font-family: 'Courier New', Courier, monospace; 
+    background-color: var(--bg-color); 
+    color: var(--text-main); 
+    display: flex; 
+    justify-content: center; 
+    height: 100dvh; /* FIX: 'dvh' (Dynamic Viewport Height) impede que a barra do Chrome esconda o rodapé */
+    overflow: hidden; 
+}
+
+#game-container { 
+    display: flex; 
+    flex-direction: column; 
+    width: 100%; 
+    max-width: 600px; 
+    height: 100%; 
+    background-color: var(--panel-bg); 
+    box-shadow: 0 0 20px rgba(0,0,0,0.8); /* Cria uma sombra para destacar o jogo se aberto no PC */
+}
 
 #hud { padding: 15px; background: #010409; border-bottom: 1px solid #30363d; z-index: 10;}
 .bars { margin-top: 10px; }
