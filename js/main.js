@@ -1,6 +1,6 @@
 import { auth, signInAnonymously, GoogleAuthProvider, linkWithPopup, signInWithPopup } from './firebase.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { initPlayer, PlayerState } from './modules/player.js';
+import { initPlayer, PlayerState, executeRankUp } from './modules/player.js';
 import { CombatEngine } from './modules/combat.js';
 import { RenderUI } from './ui/render.js';
 import { GAME_CONFIG } from './data/gameConfig.js';
@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             await initPlayer(user.uid);
             
-            // Oculta botão Google se já estiver vinculado
             if (user.providerData.some(p => p.providerId === 'google.com')) {
                 const btnGoogle = document.getElementById('btn-google');
                 if (btnGoogle) btnGoogle.style.display = 'none';
@@ -49,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('spawnNextEnemy', () => startNewEncounter());
 
 function startNewEncounter() {
-    const zoneLevel = PlayerState.current_zone > 4 ? 4 : PlayerState.current_zone;
+    const zoneLevel = PlayerState.current_zone > 5 ? 5 : PlayerState.current_zone;
     const currentZone = GAME_CONFIG.ZONES[zoneLevel];
     let isBoss = false; let enemyKey = '';
 
@@ -60,16 +59,23 @@ function startNewEncounter() {
     } else {
         enemyKey = currentZone.enemies[Math.floor(Math.random() * currentZone.enemies.length)];
     }
-  // Substitua o trecho de geração do enemyData no main.js:
+    
     const baseEnemy = GAME_CONFIG.ENEMIES[enemyKey];
     let enemyData = { ...baseEnemy };
     
-    // Labirinto Scale: HP e Dano escalam com o Nível do Player
+    // NOVO: Escalonamento do Labirinto (Endgame)
     if (currentZone.scaling) {
         const scaleMult = PlayerState.level + 2;
         enemyData.hp_max = Math.floor(enemyData.hp_max * (scaleMult * 0.1));
         enemyData.base_damage = Math.floor(enemyData.base_damage * (scaleMult * 0.1));
         enemyData.exp_reward = Math.floor(enemyData.exp_reward * (scaleMult * 0.2));
+    }
+    
+    if (isBoss) {
+        enemyData.name = `[CHEFE] ${baseEnemy.name}`;
+        enemyData.hp_max = Math.floor(enemyData.hp_max * 1.5);
+        enemyData.base_damage = Math.floor(enemyData.base_damage * 1.3);
+        enemyData.exp_reward = enemyData.exp_reward * 3;
     }
     
     currentCombat = new CombatEngine(auth.currentUser.uid, enemyData, isBoss);
@@ -83,9 +89,7 @@ function startNewEncounter() {
     document.getElementById('btn-name-monster').innerText = 'Nomear (MP)';
 }
 
-function closeAllModals() { 
-    document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); 
-}
+function closeAllModals() { document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); }
 
 function toggleAuto() {
     isAutoMode = !isAutoMode;
@@ -148,21 +152,20 @@ function setupControls() {
     
     document.getElementById('btn-auto').onclick = () => toggleAuto();
 
-    // Vínculo com Conta Google e Sistema de Carregar Jogo (Load)
+    // Evento de Rank UP (Evolução)
+    document.getElementById('btn-rankup').onclick = () => { executeRankUp(auth.currentUser.uid); };
+
     document.getElementById('btn-google').onclick = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            // Tenta vincular o jogo atual (Novo Jogador)
             const result = await linkWithPopup(auth.currentUser, provider);
             RenderUI.log(`《 Grande Sábio 》 Vínculo de Alma permanente estabelecido com: ${result.user.email}`, "sage");
             document.getElementById('btn-google').style.display = 'none';
         } catch (error) {
-            // Se a conta já existe, o jogador está retornando! Vamos baixar o save dele.
             if (error.code === 'auth/credential-already-in-use') {
                 RenderUI.log(`《 Grande Sábio 》 Memórias passadas detectadas. Sincronizando...`, "sage");
                 try {
                     await signInWithPopup(auth, provider);
-                    // Recarrega a página para o sistema baixar a vida, nível e moedas da nuvem
                     window.location.reload(); 
                 } catch (loginError) {
                     RenderUI.log(`Erro ao sincronizar memórias: ${loginError.message}`, "damage");
