@@ -19,7 +19,7 @@ export const VillageSystem = {
         const maxVanguard = 2 + (PlayerState.upgrades['vanguard_limit'] || 0);
         const activePartyCount = PlayerState.subordinates.filter(s => s.role === 'party').length;
         if (sub.role === 'village') {
-            if (activePartyCount >= maxVanguard) return RenderUI.log(`A Vanguarda está cheia (Máx: ${maxVanguard}). Melhore seus Alojamentos.`, "damage");
+            if (activePartyCount >= maxVanguard) return RenderUI.log(`A Vanguarda está cheia (Máx: ${maxVanguard}).`, "damage");
             sub.role = 'party';
         } else {
             sub.role = 'village';
@@ -44,7 +44,7 @@ export const VillageSystem = {
         const currentLevel = PlayerState.upgrades[upgradeId] || 0;
         if (currentLevel >= upgradeData.max_level) return;
         const cost = Math.floor(upgradeData.base_cost * Math.pow(1.5, currentLevel));
-        if (PlayerState.wallet < cost) return RenderUI.log("Fundos insuficientes para esta melhoria.", "damage");
+        if (PlayerState.wallet < cost) return RenderUI.log("Fundos insuficientes.", "damage");
 
         PlayerState.wallet -= cost;
         PlayerState.upgrades[upgradeId] = currentLevel + 1;
@@ -61,11 +61,26 @@ export const VillageSystem = {
         RenderUI.renderVillageModal(playerId, 'exped');
     },
 
+    // NOVO: Funções de Mapa
+    async travelToZone(playerId, zoneId) {
+        PlayerState.current_zone = zoneId;
+        PlayerState.zone_progress = 0;
+        await setDoc(doc(db, "player_core", playerId), { current_zone: zoneId, zone_progress: 0 }, { merge: true });
+        RenderUI.log(`《 Grande Sábio 》 Viagem Rápida concluída: ${GAME_CONFIG.ZONES[zoneId].name}`, "sage");
+        RenderUI.updateZoneUI(zoneId);
+        RenderUI.renderVillageModal(playerId, 'map');
+    },
+
+    async toggleAutoAdvance(playerId) {
+        PlayerState.auto_advance = !PlayerState.auto_advance;
+        await setDoc(doc(db, "player_core", playerId), { auto_advance: PlayerState.auto_advance }, { merge: true });
+        RenderUI.renderVillageModal(playerId, 'map');
+    },
+
     async processExpeditionGains(playerId, isOfflineLogin = false) {
         if (!PlayerState.subordinates || !PlayerState.last_village_update) return null;
         const now = Date.now();
         const minutesPassed = Math.floor((now - PlayerState.last_village_update) / 60000);
-        
         if (minutesPassed < 1) return null;
 
         const villageWorkers = PlayerState.subordinates.filter(s => s.role === 'village').length;
@@ -80,25 +95,10 @@ export const VillageSystem = {
         const zone = PlayerState.expedition_zone || 1;
 
         let exp = 0, coins = 0, potions = 0;
-
-        // Loot dinâmico baseado na Zona escolhida pelo jogador
-        if (zone === 1) { 
-            potions = Math.floor(minutesPassed * villageWorkers * 0.2 * multiplier);
-            exp = Math.floor(minutesPassed * villageWorkers * 2 * multiplier);
-            coins = Math.floor(minutesPassed * villageWorkers * 5 * multiplier);
-        } else if (zone === 2) { 
-            potions = Math.floor(minutesPassed * villageWorkers * 0.1 * multiplier);
-            exp = Math.floor(minutesPassed * villageWorkers * 5 * multiplier);
-            coins = Math.floor(minutesPassed * villageWorkers * 10 * multiplier);
-        } else if (zone === 3) { 
-            potions = Math.floor(minutesPassed * villageWorkers * 0.05 * multiplier);
-            exp = Math.floor(minutesPassed * villageWorkers * 12 * multiplier);
-            coins = Math.floor(minutesPassed * villageWorkers * 8 * multiplier);
-        } else if (zone >= 4) { 
-            potions = Math.floor(minutesPassed * villageWorkers * 0.02 * multiplier);
-            exp = Math.floor(minutesPassed * villageWorkers * 8 * multiplier);
-            coins = Math.floor(minutesPassed * villageWorkers * 25 * multiplier);
-        }
+        if (zone === 1) { potions = Math.floor(minutesPassed * villageWorkers * 0.2 * multiplier); exp = Math.floor(minutesPassed * villageWorkers * 2 * multiplier); coins = Math.floor(minutesPassed * villageWorkers * 5 * multiplier); }
+        else if (zone === 2) { potions = Math.floor(minutesPassed * villageWorkers * 0.1 * multiplier); exp = Math.floor(minutesPassed * villageWorkers * 5 * multiplier); coins = Math.floor(minutesPassed * villageWorkers * 10 * multiplier); }
+        else if (zone === 3) { potions = Math.floor(minutesPassed * villageWorkers * 0.05 * multiplier); exp = Math.floor(minutesPassed * villageWorkers * 12 * multiplier); coins = Math.floor(minutesPassed * villageWorkers * 8 * multiplier); }
+        else if (zone >= 4) { potions = Math.floor(minutesPassed * villageWorkers * 0.02 * multiplier); exp = Math.floor(minutesPassed * villageWorkers * 8 * multiplier); coins = Math.floor(minutesPassed * villageWorkers * 25 * multiplier); }
 
         PlayerState.wallet += coins;
         if (potions > 0) await InventorySystem.addItem(playerId, 'magicule_potion', potions);
@@ -107,14 +107,9 @@ export const VillageSystem = {
         await setDoc(doc(db, "player_core", playerId), { last_village_update: now, wallet: PlayerState.wallet }, { merge: true });
 
         const report = { minutes: minutesPassed, exp, coins, potions, zoneName: GAME_CONFIG.ZONES[zone].name };
-
-        if (isOfflineLogin) {
-            return report;
-        } else {
-            // Se estiver com o jogo aberto, gera em tempo real a cada minuto
-            import('./player.js').then(m => {
-                if(exp > 0) m.addExperience(playerId, exp);
-            });
+        if (isOfflineLogin) return report;
+        else {
+            import('./player.js').then(m => { if(exp > 0) m.addExperience(playerId, exp); });
             RenderUI.log(`[Expedição: ${GAME_CONFIG.ZONES[zone].name}] Equipe retornou com +${coins} Cobres e recursos!`, "system");
             RenderUI.updateHUD(PlayerState);
             return null;
