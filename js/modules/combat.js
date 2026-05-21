@@ -130,7 +130,7 @@ export class CombatEngine {
         }, 3000);
     }
 
-    handleEnemyDeath() {
+    async handleEnemyDeath() {
         this.isActive = false;
         RenderUI.log(`[0% HP] O ${this.enemy.name} foi subjugado!`, "system");
         
@@ -145,6 +145,26 @@ export class CombatEngine {
         document.getElementById('btn-predator').disabled = false;
         document.getElementById('btn-name-monster').disabled = false;
         
+        // NOVO: Verificador de Missões (Quest Tracker)
+        if (PlayerState.quests && PlayerState.quests.length > 0) {
+            for (let i = PlayerState.quests.length - 1; i >= 0; i--) {
+                let q = PlayerState.quests[i];
+                let qData = GAME_CONFIG.QUESTS[q.id];
+                if (qData.target === this.enemy.id) {
+                    q.progress += 1;
+                    if (q.progress >= qData.required) {
+                        RenderUI.log(`《 Grande Sábio 》 Missão Concluída: [${qData.name}]!`, "sage");
+                        if (qData.reward_coins) PlayerState.wallet += qData.reward_coins;
+                        if (qData.reward_exp) await addExperience(this.playerId, qData.reward_exp);
+                        if (qData.reward_pots) await InventorySystem.addItem(this.playerId, 'magicule_potion', qData.reward_pots);
+                        PlayerState.quests.splice(i, 1); // Remove missão concluída
+                        RenderUI.updateHUD(PlayerState);
+                    }
+                    await updateDoc(doc(db, "player_core", this.playerId), { quests: PlayerState.quests });
+                }
+            }
+        }
+
         const baseEnemyKey = this.enemy.id.split('_')[1] === '001' ? 'GOBLIN' : 
                              this.enemy.id.split('_')[1] === '002' ? 'DIREWOLF' : 
                              this.enemy.id.split('_')[1] === '003' ? 'LIZARDMAN' : 'ORC';
@@ -165,7 +185,6 @@ export class CombatEngine {
         await addExperience(this.playerId, expGained);
         
         if (this.isBoss) {
-            // NOVO: Controle de Farming Lock
             if (PlayerState.auto_advance && PlayerState.current_zone < 5) {
                 PlayerState.current_zone += 1;
                 PlayerState.zone_progress = 0;
