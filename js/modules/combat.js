@@ -100,6 +100,14 @@ export class CombatEngine {
         PlayerState.hp_current -= damage;
         PlayerState.defense_modifier = 1; 
 
+        // NOVO: Passiva do Acessório de Regen
+        if (PlayerState.equipment && PlayerState.equipment.accessory) {
+            const acc = InventorySystem.ITEMS[PlayerState.equipment.accessory];
+            if (acc.mp_regen) {
+                PlayerState.mp_current = Math.min(PlayerState.mp_max, PlayerState.mp_current + acc.mp_regen);
+            }
+        }
+
         RenderUI.log(`O ${this.enemy.name} atacou, causando ${damage} de dano.`, "damage");
         RenderUI.updateHUD(PlayerState);
         
@@ -148,7 +156,15 @@ export class CombatEngine {
     async finishEncounter() {
         document.getElementById('btn-predator').disabled = true;
         document.getElementById('btn-name-monster').disabled = true;
-        await addExperience(this.playerId, this.enemy.exp_reward);
+
+        // NOVO: Passiva do Acessório de Experiência
+        let expGained = this.enemy.exp_reward;
+        if (PlayerState.equipment && PlayerState.equipment.accessory) {
+            const acc = InventorySystem.ITEMS[PlayerState.equipment.accessory];
+            if (acc.exp_mult) expGained = Math.floor(expGained * acc.exp_mult);
+        }
+
+        await addExperience(this.playerId, expGained);
         
         if (this.isBoss && PlayerState.current_zone < 5) {
             PlayerState.current_zone += 1;
@@ -192,7 +208,7 @@ export class CombatEngine {
             
             RenderUI.log(`Obteve recompensa: ${RenderUI.formatCurrency(coinReward)}`);
 
-            // DROPS LENDÁRIOS RNG (5% em Chefes)
+            // DROPS LENDÁRIOS RNG (Acessórios entram na Pool de Direwolf e Goblin Chefe)
             if (this.isBoss && Math.random() <= 0.05) {
                 if (formKey === 'orc') {
                     await InventorySystem.addItem(this.playerId, 'lamina_desespero', 1);
@@ -200,6 +216,12 @@ export class CombatEngine {
                 } else if (formKey === 'lizardman') {
                     await InventorySystem.addItem(this.playerId, 'escama_dragao', 1);
                     RenderUI.log(`《 ITEM LENDÁRIO 》 Você obteve: Escama Soberana!`, "sage");
+                } else if (formKey === 'direwolf') {
+                    await InventorySystem.addItem(this.playerId, 'anel_sabio', 1);
+                    RenderUI.log(`《 ITEM LENDÁRIO 》 Você obteve: Anel do Sábio!`, "sage");
+                } else if (formKey === 'goblin') {
+                    await InventorySystem.addItem(this.playerId, 'colar_conquistador', 1);
+                    RenderUI.log(`《 ITEM LENDÁRIO 》 Você obteve: Colar do Conquistador!`, "sage");
                 }
             } else {
                 if (formKey === 'goblin') await InventorySystem.addItem(this.playerId, 'magicule_potion', 1);
@@ -211,7 +233,7 @@ export class CombatEngine {
             await this.finishEncounter();
         } catch (e) { console.error(e); }
     }
-
+    // (O executeName pode permanecer como estava)
     async executeName() {
         const baseEnemyKey = this.enemy.id.split('_')[1] === '001' ? 'GOBLIN' : 
                              this.enemy.id.split('_')[1] === '002' ? 'DIREWOLF' : 
