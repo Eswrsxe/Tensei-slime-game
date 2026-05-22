@@ -22,9 +22,20 @@ export class CombatEngine {
         return `[${pct}% HP]`;
     }
 
+    // NOVO: Renderiza a foto do Inimigo no Log
+    getEnemyImgTag() {
+        return `<img src="${this.enemy.img || ''}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #30363d;">`;
+    }
+    
+    // NOVO: Renderiza a sua foto (Player) no Log
+    getPlayerImgTag() {
+        const rankData = GAME_CONFIG.RANKS[PlayerState.rank || 0];
+        return `<img src="${rankData.img || ''}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #58a6ff;">`;
+    }
+
     async start() {
         this.isActive = true;
-        RenderUI.log(`${this.getHpTag()} Um ${this.enemy.name} selvagem apareceu!`, "system");
+        RenderUI.log(`${this.getHpTag()} ${this.getEnemyImgTag()} Um ${this.enemy.name} selvagem apareceu!`, "system");
         await setDoc(doc(db, "active_combats", this.combatId), { playerId: this.playerId, enemy: this.enemy.name, isLooted: false, timestamp: Date.now() });
     }
 
@@ -44,7 +55,7 @@ export class CombatEngine {
         if (action === 'attack') {
             const damage = Math.floor(baseDmg);
             this.enemy.hp_current -= damage;
-            RenderUI.log(`${this.getHpTag()} Sua Vanguarda atacou! Causou ${damage} de dano.`);
+            RenderUI.log(`${this.getHpTag()} ${this.getPlayerImgTag()} Sua Vanguarda atacou! Causou ${damage} de dano.`);
             if (lifestealRate > 0) {
                 const heal = Math.floor(damage * lifestealRate);
                 PlayerState.hp_current = Math.min(PlayerState.hp_max, PlayerState.hp_current + heal);
@@ -52,7 +63,7 @@ export class CombatEngine {
             }
         } else if (action === 'defend') {
             PlayerState.defense_modifier = 0.5;
-            RenderUI.log(`Você assumiu uma postura defensiva.`);
+            RenderUI.log(`${this.getPlayerImgTag()} Você assumiu uma postura defensiva.`);
         } else if (action === 'magic') {
             const currentForm = PlayerState.current_form || 'slime';
             const skill = GAME_CONFIG.ACTIVE_SKILLS[currentForm];
@@ -65,16 +76,16 @@ export class CombatEngine {
             if (skill.type === 'attack') {
                 const damage = Math.floor(baseDmg * skill.mult);
                 this.enemy.hp_current -= damage;
-                RenderUI.log(`${this.getHpTag()} Você conjurou [${skill.name}]! Causou ${damage} de dano.`, "sage");
+                RenderUI.log(`${this.getHpTag()} ${this.getPlayerImgTag()} Você conjurou [${skill.name}]! Causou ${damage} de dano.`, "sage");
             } else if (skill.type === 'buff') {
                 PlayerState.active_buff = { effect: skill.effect, turns: skill.duration };
-                RenderUI.log(`Você conjurou [${skill.name}]! Proteção ativada.`, "sage");
+                RenderUI.log(`${this.getPlayerImgTag()} Você conjurou [${skill.name}]! Proteção ativada.`, "sage");
             } else if (skill.type === 'attack_heal') {
                 const damage = Math.floor(baseDmg * skill.mult);
                 this.enemy.hp_current -= damage;
                 const heal = Math.floor(PlayerState.hp_max * skill.heal);
                 PlayerState.hp_current = Math.min(PlayerState.hp_max, PlayerState.hp_current + heal);
-                RenderUI.log(`${this.getHpTag()} Você conjurou [${skill.name}]! Causou ${damage} dano e absorveu ${heal} HP.`, "heal");
+                RenderUI.log(`${this.getHpTag()} ${this.getPlayerImgTag()} Você conjurou [${skill.name}]! Causou ${damage} dano e absorveu ${heal} HP.`, "heal");
                 RenderUI.updateHUD(PlayerState);
             }
         }
@@ -107,7 +118,7 @@ export class CombatEngine {
             if (acc.mp_regen) PlayerState.mp_current = Math.min(PlayerState.mp_max, PlayerState.mp_current + acc.mp_regen);
         }
 
-        RenderUI.log(`${this.getHpTag()} O ${this.enemy.name} atacou, causando ${damage} de dano.`, "damage");
+        RenderUI.log(`${this.getHpTag()} ${this.getEnemyImgTag()} O ${this.enemy.name} atacou, causando ${damage} de dano.`, "damage");
         RenderUI.updateHUD(PlayerState);
         
         if (PlayerState.hp_current <= 0) this.handlePlayerDeath();
@@ -132,7 +143,7 @@ export class CombatEngine {
 
     async handleEnemyDeath() {
         this.isActive = false;
-        RenderUI.log(`[0% HP] O ${this.enemy.name} foi subjugado!`, "system");
+        RenderUI.log(`[0% HP] ${this.getEnemyImgTag()} O ${this.enemy.name} foi subjugado!`, "system");
         
         const regen = Math.floor(PlayerState.hp_max * 0.2);
         PlayerState.hp_current = Math.min(PlayerState.hp_max, PlayerState.hp_current + regen);
@@ -145,7 +156,6 @@ export class CombatEngine {
         document.getElementById('btn-predator').disabled = false;
         document.getElementById('btn-name-monster').disabled = false;
         
-        // NOVO: Verificador de Missões (Quest Tracker)
         if (PlayerState.quests && PlayerState.quests.length > 0) {
             for (let i = PlayerState.quests.length - 1; i >= 0; i--) {
                 let q = PlayerState.quests[i];
@@ -157,7 +167,7 @@ export class CombatEngine {
                         if (qData.reward_coins) PlayerState.wallet += qData.reward_coins;
                         if (qData.reward_exp) await addExperience(this.playerId, qData.reward_exp);
                         if (qData.reward_pots) await InventorySystem.addItem(this.playerId, 'magicule_potion', qData.reward_pots);
-                        PlayerState.quests.splice(i, 1); // Remove missão concluída
+                        PlayerState.quests.splice(i, 1); 
                         RenderUI.updateHUD(PlayerState);
                     }
                     await updateDoc(doc(db, "player_core", this.playerId), { quests: PlayerState.quests });
