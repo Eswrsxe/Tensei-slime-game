@@ -16,11 +16,25 @@ export const GAME_CONFIG = {
         5: { name: "Labirinto de Ramiris", class: "zone-3", enemies: ['GOBLIN', 'DIREWOLF', 'LIZARDMAN', 'ORC'], kills_to_boss: 15, boss: 'ORC', scaling: true }
     },
 
+    // NOVO: Sistema de Evolução de Subordinados
+    EVOLUTIONS: {
+        'mob_001': { next_id: 'mob_001_evo', name: 'Hobgoblin', cost: 5000 },
+        'mob_002': { next_id: 'mob_002_evo', name: 'Tempest Star Wolf', cost: 15000 },
+        'mob_003': { next_id: 'mob_003_evo', name: 'Dragonewt', cost: 30000 },
+        'mob_004': { next_id: 'mob_004_evo', name: 'High Orc', cost: 50000 }
+    },
+
     ENEMIES: {
+        // Formas Base
         GOBLIN: { id: 'mob_001', name: 'Goblin', hp_max: 30, base_damage: 3, exp_reward: 15, naming_cost: 5, bonus_atk: 2, bonus_def: 0, drop_coins: 20 },
         DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55 },
         LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120 },
-        ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 }
+        ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 },
+        // Formas Evoluídas (Buffs Massivos para a Vanguarda)
+        HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2 },
+        STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4 },
+        DRAGONEWT: { id: 'mob_003_evo', name: 'Dragonewt', bonus_atk: 12, bonus_def: 10 },
+        HIGH_ORC: { id: 'mob_004_evo', name: 'High Orc', bonus_atk: 25, bonus_def: 8 }
     },
 
     EVENTS: [
@@ -51,7 +65,6 @@ export const GAME_CONFIG = {
         'q_lobos': { id: 'q_lobos', name: 'Fúria da Floresta', desc: 'Derrote 5 Direwolves.', target: 'mob_002', required: 5, reward_coins: 0, reward_pots: 2, reward_exp: 1500 }
     },
 
-    // NOVO: Evento Fixo de Tutorial
     TUTORIAL_EVENT: {
         id: 'evt_tutorial',
         npc: 'Voz Misteriosa',
