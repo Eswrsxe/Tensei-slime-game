@@ -28,6 +28,33 @@ export const VillageSystem = {
         RenderUI.renderVillageModal(playerId, 'subs');
     },
 
+    // NOVO: Função de Evolução de Cidadão
+    async evolveSubordinate(playerId, subId) {
+        const sub = PlayerState.subordinates.find(s => s.id === subId);
+        if (!sub) return;
+        
+        const evoData = GAME_CONFIG.EVOLUTIONS[sub.typeId];
+        if (!evoData) return;
+
+        if (PlayerState.wallet < evoData.cost) {
+            return RenderUI.log("《 Grande Sábio 》 Fundos insuficientes para instigar a evolução.", "damage");
+        }
+
+        PlayerState.wallet -= evoData.cost;
+        const oldName = sub.name;
+        sub.typeId = evoData.next_id;
+        sub.name = evoData.name; // Substitui o nome pela raça superior
+
+        await setDoc(doc(db, "player_core", playerId), { 
+            subordinates: PlayerState.subordinates, 
+            wallet: PlayerState.wallet 
+        }, { merge: true });
+
+        RenderUI.log(`《 Grande Sábio 》 Evolução concluída! ${oldName} transcendeu para a raça [${evoData.name}]. O bônus da vanguarda aumentou.`, "sage");
+        RenderUI.updateHUD(PlayerState);
+        RenderUI.renderVillageModal(playerId, 'subs');
+    },
+
     getPartyBonus() {
         let bonusAtk = 0; let bonusDef = 0;
         if (!PlayerState.subordinates) return { atk: 0, def: 0 };
@@ -61,7 +88,6 @@ export const VillageSystem = {
         RenderUI.renderVillageModal(playerId, 'exped');
     },
 
-    // NOVO: Funções de Mapa
     async travelToZone(playerId, zoneId) {
         PlayerState.current_zone = zoneId;
         PlayerState.zone_progress = 0;
