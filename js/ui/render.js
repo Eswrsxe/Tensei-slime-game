@@ -22,9 +22,16 @@ export const RenderUI = {
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
         document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
         
-        // Renderiza a Tag do Jogador
+        // NOVO: Atualiza a Imagem (Avatar) do HUD com base no Rank
+        const avatarEl = document.getElementById('player-avatar');
+        if (avatarEl) avatarEl.src = rankData.img;
+
         const tagElement = document.getElementById('player-tag');
         if (tagElement) tagElement.innerText = playerState.player_tag || '#----';
+
+        document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
+        const currentForm = playerState.current_form || 'slime';
+        document.getElementById('player-form').innerText = `Forma: ${currentForm.toUpperCase()}`;
 
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
