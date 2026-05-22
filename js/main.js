@@ -285,7 +285,11 @@ function setupControls() {
 
     document.getElementById('tab-subs').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'subs');
     document.getElementById('tab-exped').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'exped');
-    document.getElementById('tab-upgrades').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'upgrades');
+    
+    // Substitua esta linha antiga por essa nova que lida com IDs dinâmicos
+    const marketTab = document.getElementById('tab-upgrades') || document.getElementById('tab-market');
+    if (marketTab) marketTab.onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'market');
+    
     document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
     
     document.getElementById('btn-send-chat').onclick = () => processChatInput();
