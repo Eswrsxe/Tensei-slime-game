@@ -28,7 +28,6 @@ export const VillageSystem = {
         RenderUI.renderVillageModal(playerId, 'subs');
     },
 
-    // NOVO: Função de Evolução de Cidadão
     async evolveSubordinate(playerId, subId) {
         const sub = PlayerState.subordinates.find(s => s.id === subId);
         if (!sub) return;
@@ -43,7 +42,7 @@ export const VillageSystem = {
         PlayerState.wallet -= evoData.cost;
         const oldName = sub.name;
         sub.typeId = evoData.next_id;
-        sub.name = evoData.name; // Substitui o nome pela raça superior
+        sub.name = evoData.name; 
 
         await setDoc(doc(db, "player_core", playerId), { 
             subordinates: PlayerState.subordinates, 
@@ -66,19 +65,33 @@ export const VillageSystem = {
         return { atk: bonusAtk, def: bonusDef };
     },
 
-    async buyUpgrade(playerId, upgradeId) {
-        const upgradeData = GAME_CONFIG.UPGRADES[upgradeId];
-        const currentLevel = PlayerState.upgrades[upgradeId] || 0;
-        if (currentLevel >= upgradeData.max_level) return;
-        const cost = Math.floor(upgradeData.base_cost * Math.pow(1.5, currentLevel));
-        if (PlayerState.wallet < cost) return RenderUI.log("Fundos insuficientes.", "damage");
+    // NOVO: Lógica de Compra no Mercado
+    async buyMarketItem(playerId, itemKey, isUpgrade = false) {
+        const marketData = isUpgrade ? GAME_CONFIG.MARKET.UPGRADES[itemKey] : GAME_CONFIG.MARKET.SHOP[itemKey];
+        
+        if (isUpgrade) {
+            const currentLevel = PlayerState.upgrades[itemKey] || 0;
+            if (currentLevel >= marketData.max_level) return;
+            const cost = Math.floor(marketData.base_cost * Math.pow(1.5, currentLevel));
+            
+            if (PlayerState.wallet < cost) return RenderUI.log("Fundos insuficientes para transação com Dwargon.", "damage");
+            PlayerState.wallet -= cost;
+            PlayerState.upgrades[itemKey] = currentLevel + 1;
+            
+            await setDoc(doc(db, "player_core", playerId), { wallet: PlayerState.wallet, upgrades: PlayerState.upgrades }, { merge: true });
+            RenderUI.log(`Contrato com Dwargon fechado: [${marketData.name}] Nível ${currentLevel + 1}.`, "sage");
+        
+        } else {
+            if (PlayerState.wallet < marketData.cost) return RenderUI.log("Fundos insuficientes para transação com Sarion.", "damage");
+            PlayerState.wallet -= marketData.cost;
+            
+            await InventorySystem.addItem(playerId, marketData.id, marketData.qty);
+            await setDoc(doc(db, "player_core", playerId), { wallet: PlayerState.wallet }, { merge: true });
+            RenderUI.log(`Importação de Sarion recebida: +${marketData.qty}x ${marketData.name.replace('[Sarion] ', '')}.`, "sage");
+        }
 
-        PlayerState.wallet -= cost;
-        PlayerState.upgrades[upgradeId] = currentLevel + 1;
-        await setDoc(doc(db, "player_core", playerId), { wallet: PlayerState.wallet, upgrades: PlayerState.upgrades }, { merge: true });
-        RenderUI.log(`Investimento concluído: [${upgradeData.name}] Nível ${currentLevel + 1}.`, "sage");
         RenderUI.updateHUD(PlayerState);
-        RenderUI.renderVillageModal(playerId, 'upgrades');
+        RenderUI.renderVillageModal(playerId, 'market');
     },
 
     async setExpeditionZone(playerId, zoneId) {
