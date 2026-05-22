@@ -4,7 +4,7 @@ export const GAME_CONFIG = {
     
     // As imagens ficam armazenadas na propriedade "img"
     RANKS: {
-        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0, img: "https://placehold.co/40x40/1f6feb/ffffff?text=SL" },
+        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0, img: "https://s10.aconvert.com/convert/p3r68-cdx67/aab3e-mxrdr.jpg" },
         1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff", img: "https://placehold.co/40x40/d2a8ff/ffffff?text=DS" },
         2: { name: "True Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700", img: "https://placehold.co/40x40/ffd700/000000?text=DL" }
     },
