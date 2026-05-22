@@ -2,10 +2,11 @@ export const GAME_CONFIG = {
     STARTING_STATS: { HP: 50, MP: 20 },
     LEVEL_CURVE: { base_exp: 50, multiplier: 1.5 },
     
+    // As imagens ficam armazenadas na propriedade "img"
     RANKS: {
-        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0 },
-        1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff" },
-        2: { name: "True Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700" }
+        0: { name: "Slime Base", stat_mult: 1, req_lvl: 0, img: "https://placehold.co/40x40/1f6feb/ffffff?text=SL" },
+        1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff", img: "https://placehold.co/40x40/d2a8ff/ffffff?text=DS" },
+        2: { name: "True Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700", img: "https://placehold.co/40x40/ffd700/000000?text=DL" }
     },
 
     ZONES: {
@@ -24,14 +25,14 @@ export const GAME_CONFIG = {
     },
 
     ENEMIES: {
-        GOBLIN: { id: 'mob_001', name: 'Goblin', hp_max: 30, base_damage: 3, exp_reward: 15, naming_cost: 5, bonus_atk: 2, bonus_def: 0, drop_coins: 20 },
-        DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55 },
-        LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120 },
-        ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 },
-        HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2 },
-        STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4 },
-        DRAGONEWT: { id: 'mob_003_evo', name: 'Dragonewt', bonus_atk: 12, bonus_def: 10 },
-        HIGH_ORC: { id: 'mob_004_evo', name: 'High Orc', bonus_atk: 25, bonus_def: 8 }
+        GOBLIN: { id: 'mob_001', name: 'Goblin', hp_max: 30, base_damage: 3, exp_reward: 15, naming_cost: 5, bonus_atk: 2, bonus_def: 0, drop_coins: 20, img: "https://placehold.co/40x40/238636/ffffff?text=GB" },
+        DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55, img: "https://placehold.co/40x40/3b4252/ffffff?text=DW" },
+        LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120, img: "https://placehold.co/40x40/e3b341/ffffff?text=LZ" },
+        ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350, img: "https://placehold.co/40x40/da3633/ffffff?text=OR" },
+        HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2, img: "https://placehold.co/40x40/2ea043/ffffff?text=HG" },
+        STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4, img: "https://placehold.co/40x40/8b949e/ffffff?text=SW" },
+        DRAGONEWT: { id: 'mob_003_evo', name: 'Dragonewt', bonus_atk: 12, bonus_def: 10, img: "https://placehold.co/40x40/d2a8ff/ffffff?text=DN" },
+        HIGH_ORC: { id: 'mob_004_evo', name: 'High Orc', bonus_atk: 25, bonus_def: 8, img: "https://placehold.co/40x40/ff7b72/ffffff?text=HO" }
     },
 
     EVENTS: [
@@ -81,15 +82,12 @@ export const GAME_CONFIG = {
         'orc': { name: 'Esmagar', cost: 12, type: 'attack_heal', mult: 2.5, heal: 0.1 }
     },
 
-    // NOVO: Mercado das Nações (Lojas)
     MARKET: {
-        // Upgrades Permanentes de Dwargon
         UPGRADES: {
             'vanguard_limit': { id: 'vanguard_limit', name: '[Dwargon] Alojamentos', desc: '+1 Espaço na Vanguarda', max_level: 1, base_cost: 50000 },
             'military_training': { id: 'military_training', name: '[Dwargon] Treino Militar', desc: '+5 Ataque da Party', max_level: 10, base_cost: 20000 },
             'trade_route': { id: 'trade_route', name: '[Dwargon] Rotas Comerciais', desc: 'Aumenta lucro da Expedição', max_level: 5, base_cost: 80000 }
         },
-        // Consumíveis de Sarion
         SHOP: {
             'buy_potion_1': { id: 'magicule_potion', name: '[Sarion] Poção de Magicule x1', desc: 'Restaura HP/MP', qty: 1, cost: 500 },
             'buy_potion_10': { id: 'magicule_potion', name: '[Sarion] Pacote de Poções x10', desc: 'Restaura HP/MP (Lote)', qty: 10, cost: 4500 }
