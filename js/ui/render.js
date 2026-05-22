@@ -22,8 +22,9 @@ export const RenderUI = {
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
         document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
         
-        // NOVO: Renderiza a Tag do Jogador
-        document.getElementById('player-tag').innerText = playerState.player_tag || '#----';
+        // Renderiza a Tag do Jogador
+        const tagElement = document.getElementById('player-tag');
+        if (tagElement) tagElement.innerText = playerState.player_tag || '#----';
 
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
@@ -181,8 +182,30 @@ export const RenderUI = {
                     const div = document.createElement('div');
                     div.className = 'item-slot';
                     const isParty = sub.role === 'party';
-                    div.innerHTML = `<div class="item-info"><span class="item-name" style="color: ${isParty ? '#ff7b72' : '#58a6ff'};">${sub.name}</span><span class="item-desc">Status: ${isParty ? 'Lutando' : 'Trabalhando'}</span></div><button class="use-btn" style="background: ${isParty ? '#da3633' : '#1f6feb'};">${isParty ? 'Remover' : 'Equipar'}</button>`;
+                    
+                    // Lógica do Botão de Evolução
+                    const evoData = GAME_CONFIG.EVOLUTIONS[sub.typeId];
+                    let evoHtml = '';
+                    let btnHtml = `<button class="use-btn" style="background: ${isParty ? '#da3633' : '#1f6feb'};">${isParty ? 'Remover' : 'Equipar'}</button>`;
+
+                    if (evoData) {
+                        btnHtml += `<button class="evo-btn use-btn" style="background: #e3b341; color: #0d1117; margin-left: 5px; font-weight: bold;">Evoluir</button>`;
+                        evoHtml = `<span class="item-desc" style="color: #e3b341; margin-top: 5px; display: block;">Evolução disponível: ${this.formatCurrency(evoData.cost)}</span>`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="item-info" style="flex:1;">
+                            <span class="item-name" style="color: ${isParty ? '#ff7b72' : '#58a6ff'};">${sub.name}</span>
+                            <span class="item-desc">Status: ${isParty ? 'Lutando' : 'Trabalhando'}</span>
+                            ${evoHtml}
+                        </div>
+                        <div style="display:flex; align-items:center;">${btnHtml}</div>
+                    `;
+                    
                     div.querySelector('.use-btn').onclick = () => VillageSystem.toggleRole(playerId, sub.id);
+                    if (evoData) {
+                        div.querySelector('.evo-btn').onclick = () => VillageSystem.evolveSubordinate(playerId, sub.id);
+                    }
                     container.appendChild(div);
                 });
             } else if (activeTab === 'exped') {
