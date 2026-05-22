@@ -71,6 +71,7 @@ export const RenderUI = {
     },
 
     log(message, type = 'info') {
+        // Interceptador de Raphael (Nível 100+)
         if (PlayerState && PlayerState.rank >= 2) {
             message = message.replace('《 Grande Sábio 》', '<span style="color:#ffd700; font-style:italic; text-shadow: 0 0 5px #ffd700;">《 Raphael, Rei da Sabedoria 》</span>');
         }
@@ -142,7 +143,10 @@ export const RenderUI = {
 
     renderInventoryModal(playerId, combatEngine) {
         import('../modules/inventory.js').then(({ InventorySystem }) => {
-            const wpnId = PlayerState.equipment?.weapon; const armId = PlayerState.equipment?.armor; const accId = PlayerState.equipment?.accessory;
+            const wpnId = PlayerState.equipment?.weapon; 
+            const armId = PlayerState.equipment?.armor; 
+            const accId = PlayerState.equipment?.accessory;
+            
             document.getElementById('eqp-weapon').innerText = wpnId ? InventorySystem.ITEMS[wpnId].name : 'Vazio';
             document.getElementById('eqp-armor').innerText = armId ? InventorySystem.ITEMS[armId].name : 'Vazio';
             document.getElementById('eqp-accessory').innerText = accId ? InventorySystem.ITEMS[accId].name : 'Vazio';
@@ -171,11 +175,12 @@ export const RenderUI = {
         import('../modules/village.js').then(({ VillageSystem }) => {
             const container = document.getElementById('village-list');
             container.innerHTML = '';
+            
             document.getElementById('tab-subs').classList.toggle('active', activeTab === 'subs');
             document.getElementById('tab-exped').classList.toggle('active', activeTab === 'exped');
             
-            // Aqui substituímos a antiga Tab de Infra pelo Mercado
-            const tabMarket = document.getElementById('tab-upgrades');
+            // Renomeia dinamicamente e gerencia a tab do Mercado
+            const tabMarket = document.getElementById('tab-upgrades') || document.getElementById('tab-market');
             if (tabMarket) {
                 tabMarket.innerText = 'Mercado';
                 tabMarket.id = 'tab-market';
@@ -211,7 +216,9 @@ export const RenderUI = {
                     `;
                     
                     div.querySelector('.use-btn').onclick = () => VillageSystem.toggleRole(playerId, sub.id);
-                    if (evoData) div.querySelector('.evo-btn').onclick = () => VillageSystem.evolveSubordinate(playerId, sub.id);
+                    if (evoData) {
+                        div.querySelector('.evo-btn').onclick = () => VillageSystem.evolveSubordinate(playerId, sub.id);
+                    }
                     container.appendChild(div);
                 });
             } else if (activeTab === 'exped') {
@@ -234,7 +241,14 @@ export const RenderUI = {
                     const item = GAME_CONFIG.MARKET.SHOP[shopKey];
                     const div = document.createElement('div');
                     div.className = 'item-slot';
-                    div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:#d2a8ff;">${item.name}</span><span class="item-desc">${item.desc}</span><span class="item-desc" style="margin-top:5px; color:#e69138;">Custo: ${this.formatCurrency(item.cost)}</span></div><button class="use-btn" ${PlayerState.wallet < item.cost ? 'disabled' : ''}>Comprar</button>`;
+                    div.innerHTML = `
+                        <div class="item-info" style="flex:1;">
+                            <span class="item-name" style="color:#d2a8ff;">${item.name}</span>
+                            <span class="item-desc">${item.desc}</span>
+                            <span class="item-desc" style="margin-top:5px; color:#e69138;">Custo: ${this.formatCurrency(item.cost)}</span>
+                        </div>
+                        <button class="use-btn" ${PlayerState.wallet < item.cost ? 'disabled' : ''}>Comprar</button>
+                    `;
                     div.querySelector('.use-btn').onclick = () => VillageSystem.buyMarketItem(playerId, shopKey, false);
                     container.appendChild(div);
                 });
@@ -246,7 +260,14 @@ export const RenderUI = {
                     const cost = Math.floor(upg.base_cost * Math.pow(1.5, currentLevel));
                     const div = document.createElement('div');
                     div.className = 'item-slot';
-                    div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:#58a6ff;">${upg.name} [Nv.${currentLevel}/${upg.max_level}]</span><span class="item-desc">${upg.desc}</span><span class="item-desc" style="margin-top:5px;">Custo: ${isMax ? 'MÁXIMO' : this.formatCurrency(cost)}</span></div><button class="use-btn" ${isMax || PlayerState.wallet < cost ? 'disabled' : ''}>Contratar</button>`;
+                    div.innerHTML = `
+                        <div class="item-info" style="flex:1;">
+                            <span class="item-name" style="color:#58a6ff;">${upg.name} [Nv.${currentLevel}/${upg.max_level}]</span>
+                            <span class="item-desc">${upg.desc}</span>
+                            <span class="item-desc" style="margin-top:5px;">Custo: ${isMax ? 'MÁXIMO' : this.formatCurrency(cost)}</span>
+                        </div>
+                        <button class="use-btn" ${isMax || PlayerState.wallet < cost ? 'disabled' : ''}>Contratar</button>
+                    `;
                     if (!isMax) div.querySelector('.use-btn').onclick = () => VillageSystem.buyMarketItem(playerId, upg.id, true);
                     container.appendChild(div);
                 });
@@ -272,3 +293,4 @@ export const RenderUI = {
             }
         });
     }
+};
