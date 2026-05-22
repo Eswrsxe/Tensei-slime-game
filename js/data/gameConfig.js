@@ -16,7 +16,6 @@ export const GAME_CONFIG = {
         5: { name: "Labirinto de Ramiris", class: "zone-3", enemies: ['GOBLIN', 'DIREWOLF', 'LIZARDMAN', 'ORC'], kills_to_boss: 15, boss: 'ORC', scaling: true }
     },
 
-    // NOVO: Sistema de Evolução de Subordinados
     EVOLUTIONS: {
         'mob_001': { next_id: 'mob_001_evo', name: 'Hobgoblin', cost: 5000 },
         'mob_002': { next_id: 'mob_002_evo', name: 'Tempest Star Wolf', cost: 15000 },
@@ -25,12 +24,10 @@ export const GAME_CONFIG = {
     },
 
     ENEMIES: {
-        // Formas Base
         GOBLIN: { id: 'mob_001', name: 'Goblin', hp_max: 30, base_damage: 3, exp_reward: 15, naming_cost: 5, bonus_atk: 2, bonus_def: 0, drop_coins: 20 },
         DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55 },
         LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120 },
         ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350 },
-        // Formas Evoluídas (Buffs Massivos para a Vanguarda)
         HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2 },
         STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4 },
         DRAGONEWT: { id: 'mob_003_evo', name: 'Dragonewt', bonus_atk: 12, bonus_def: 10 },
@@ -84,9 +81,18 @@ export const GAME_CONFIG = {
         'orc': { name: 'Esmagar', cost: 12, type: 'attack_heal', mult: 2.5, heal: 0.1 }
     },
 
-    UPGRADES: {
-        'vanguard_limit': { id: 'vanguard_limit', name: 'Alojamentos', desc: '+1 Espaço na Vanguarda', max_level: 1, base_cost: 500 },
-        'military_training': { id: 'military_training', name: 'Treino Militar', desc: '+5 Ataque da Party', max_level: 10, base_cost: 200 },
-        'trade_route': { id: 'trade_route', name: 'Rotas Comerciais', desc: 'Vila produz recursos mais rápido', max_level: 5, base_cost: 800 }
+    // NOVO: Mercado das Nações (Lojas)
+    MARKET: {
+        // Upgrades Permanentes de Dwargon
+        UPGRADES: {
+            'vanguard_limit': { id: 'vanguard_limit', name: '[Dwargon] Alojamentos', desc: '+1 Espaço na Vanguarda', max_level: 1, base_cost: 50000 },
+            'military_training': { id: 'military_training', name: '[Dwargon] Treino Militar', desc: '+5 Ataque da Party', max_level: 10, base_cost: 20000 },
+            'trade_route': { id: 'trade_route', name: '[Dwargon] Rotas Comerciais', desc: 'Aumenta lucro da Expedição', max_level: 5, base_cost: 80000 }
+        },
+        // Consumíveis de Sarion
+        SHOP: {
+            'buy_potion_1': { id: 'magicule_potion', name: '[Sarion] Poção de Magicule x1', desc: 'Restaura HP/MP', qty: 1, cost: 500 },
+            'buy_potion_10': { id: 'magicule_potion', name: '[Sarion] Pacote de Poções x10', desc: 'Restaura HP/MP (Lote)', qty: 10, cost: 4500 }
+        }
     }
 };
