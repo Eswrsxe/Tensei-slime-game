@@ -22,6 +22,9 @@ export const RenderUI = {
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
         document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
         
+        // NOVO: Renderiza a Tag do Jogador
+        document.getElementById('player-tag').innerText = playerState.player_tag || '#----';
+
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
         document.getElementById('player-form').innerText = `Forma: ${currentForm.toUpperCase()}`;
@@ -94,7 +97,6 @@ export const RenderUI = {
         `;
     },
 
-    // NOVO: Renderiza a Guilda e as Missões Ativas
     renderGuildModal() {
         const container = document.getElementById('quest-list');
         container.innerHTML = '';
@@ -123,7 +125,6 @@ export const RenderUI = {
         });
     },
 
-    // (Outros renders continuam iguais)
     renderFormsModal(playerId) {
         import('../modules/skills.js').then(({ SkillTree }) => {
             const container = document.getElementById('forms-list');
