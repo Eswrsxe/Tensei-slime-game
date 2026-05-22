@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tensei Slime: v5.0.1 (Hotfix Multiplayer)</title>
+    <title>Tensei Slime: v5.1 (Visual Update)</title>
     <link rel="stylesheet" href="styles.css">
     <style>.hidden { display: none !important; }</style>
 </head>
@@ -12,13 +12,16 @@
         <header id="hud">
             <div class="player-info">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <div style="display: flex; align-items: baseline; gap: 5px;">
-                        <h2 id="player-name">Slime</h2>
-                        <span id="player-tag" style="color: #8b949e; font-size: 10px; font-family: monospace;">#0000</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img id="player-avatar" src="" style="width: 28px; height: 28px; border-radius: 4px; border: 1px solid #30363d; object-fit: cover;">
+                        <div style="display: flex; align-items: baseline; gap: 5px;">
+                            <h2 id="player-name" style="margin: 0;">Slime</h2>
+                            <span id="player-tag" style="color: #8b949e; font-size: 10px; font-family: monospace;">#0000</span>
+                        </div>
                     </div>
                     <div style="display: flex; gap: 5px;">
                         <button id="btn-auto" style="background: transparent; border: 1px solid var(--sage-color); color: var(--sage-color); padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold;">AUTO: OFF</button>
-                        <button id="btn-google" style="background: #4285f4; border: 1px solid #4285f4; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold;">Salvar no Google</button>
+                        <button id="btn-google" style="background: #4285f4; border: 1px solid #4285f4; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold;">Salvar</button>
                     </div>
                 </div>
                 <div style="margin-top: 5px; display: flex; justify-content: space-between; align-items: center;">
@@ -63,7 +66,7 @@
                 <div style="display: flex; gap: 5px; margin-bottom: 10px;">
                     <button id="tab-subs" class="tab-btn active">Cidadãos</button>
                     <button id="tab-exped" class="tab-btn">Expedir</button>
-                    <button id="tab-upgrades" class="tab-btn">Infra.</button>
+                    <button id="tab-market" class="tab-btn">Mercado</button>
                     <button id="tab-map" class="tab-btn">Mapa</button>
                 </div>
                 <div id="village-list" class="item-grid"></div>
