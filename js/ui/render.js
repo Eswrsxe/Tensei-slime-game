@@ -22,16 +22,13 @@ export const RenderUI = {
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
         document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
         
-        // NOVO: Atualiza a Imagem (Avatar) do HUD com base no Rank
+        // Avatar do HUD
         const avatarEl = document.getElementById('player-avatar');
         if (avatarEl) avatarEl.src = rankData.img;
 
+        // Tag de Aventureiro
         const tagElement = document.getElementById('player-tag');
         if (tagElement) tagElement.innerText = playerState.player_tag || '#----';
-
-        document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
-        const currentForm = playerState.current_form || 'slime';
-        document.getElementById('player-form').innerText = `Forma: ${currentForm.toUpperCase()}`;
 
         document.getElementById('player-level').innerText = `Lvl: ${playerState.level}`;
         const currentForm = playerState.current_form || 'slime';
@@ -78,7 +75,6 @@ export const RenderUI = {
     },
 
     log(message, type = 'info') {
-        // Interceptador de Raphael (Nível 100+)
         if (PlayerState && PlayerState.rank >= 2) {
             message = message.replace('《 Grande Sábio 》', '<span style="color:#ffd700; font-style:italic; text-shadow: 0 0 5px #ffd700;">《 Raphael, Rei da Sabedoria 》</span>');
         }
@@ -186,7 +182,6 @@ export const RenderUI = {
             document.getElementById('tab-subs').classList.toggle('active', activeTab === 'subs');
             document.getElementById('tab-exped').classList.toggle('active', activeTab === 'exped');
             
-            // Renomeia dinamicamente e gerencia a tab do Mercado
             const tabMarket = document.getElementById('tab-upgrades') || document.getElementById('tab-market');
             if (tabMarket) {
                 tabMarket.innerText = 'Mercado';
@@ -243,7 +238,6 @@ export const RenderUI = {
                     }
                 });
             } else if (activeTab === 'market') {
-                // Renderiza Compras do Mercado de Sarion e Dwargon
                 Object.keys(GAME_CONFIG.MARKET.SHOP).forEach(shopKey => {
                     const item = GAME_CONFIG.MARKET.SHOP[shopKey];
                     const div = document.createElement('div');
