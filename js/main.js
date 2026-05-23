@@ -49,13 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('spawnNextEnemy', () => startNewEncounter());
 
 function startNewEncounter() {
-    // 1. CHECAGEM DE TUTORIAL PRIMEIRO
     if (!PlayerState.has_seen_tutorial && !isAutoMode) {
         triggerTutorialEvent();
         return;
     }
 
-    // 2. CHECAGEM DE EVENTO ALEATÓRIO (15%)
     const zoneLevel = PlayerState.current_zone > 5 ? 5 : PlayerState.current_zone;
     const currentZone = GAME_CONFIG.ZONES[zoneLevel];
     const isBossFight = PlayerState.zone_progress >= currentZone.kills_to_boss;
@@ -103,7 +101,6 @@ function startNewEncounter() {
     document.getElementById('btn-name-monster').innerText = 'Nomear (MP)';
 }
 
-// MOTOR DE EVENTOS DE TEXTO E TUTORIAL
 function triggerTutorialEvent() {
     activeEvent = GAME_CONFIG.TUTORIAL_EVENT;
     activeEvent.isTutorial = true; 
@@ -113,7 +110,6 @@ function triggerTutorialEvent() {
     document.getElementById('btn-magic').disabled = true;
     document.getElementById('chat-panel').classList.remove('hidden');
 
-    // Injeta a imagem do NPC se ela existir
     const npcImg = activeEvent.img ? `<img src="${activeEvent.img}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #30363d;">` : '';
 
     RenderUI.log(`《 Grande Sábio 》 Uma voz ecoa em sua consciência recém-formada...`, "sage");
@@ -132,7 +128,6 @@ function triggerRandomEvent() {
     document.getElementById('btn-magic').disabled = true;
     document.getElementById('chat-panel').classList.remove('hidden');
 
-    // Injeta a imagem do NPC se ela existir
     const npcImg = activeEvent.img ? `<img src="${activeEvent.img}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #30363d;">` : '';
 
     RenderUI.log(`《 Grande Sábio 》 Uma presença se aproxima pacificamente...`, "sage");
@@ -158,7 +153,6 @@ function processChatInput() {
     setTimeout(async () => {
         RenderUI.log(`[NPC] ${activeEvent.npc}: ${choice.response}`, "info");
         
-        // Distribuição de Recompensas e Itens (Kit Inicial)
         if (choice.reward_coins) {
             PlayerState.wallet += choice.reward_coins;
             RenderUI.log(`Você recebeu ${choice.reward_coins} Cobres!`, "sage");
@@ -178,7 +172,6 @@ function processChatInput() {
             }
         }
         
-        // Se for o tutorial, salva a flag para nunca mais aparecer
         if (activeEvent.isTutorial) {
             PlayerState.has_seen_tutorial = true;
             await updateDoc(doc(db, "player_core", auth.currentUser.uid), { 
@@ -195,7 +188,6 @@ function processChatInput() {
 
     }, 1500);
 }
-
 
 function closeAllModals() { document.querySelectorAll('.modal').forEach(modal => { modal.classList.add('hidden'); }); }
 
@@ -285,19 +277,27 @@ function setupControls() {
     document.getElementById('btn-skills').onclick = () => { document.getElementById('skills-modal').classList.remove('hidden'); RenderUI.renderFormsModal(auth.currentUser.uid); };
     document.getElementById('btn-inventory').onclick = () => { document.getElementById('inventory-modal').classList.remove('hidden'); RenderUI.renderInventoryModal(auth.currentUser.uid, currentCombat); };
     document.getElementById('btn-village').onclick = () => { document.getElementById('village-modal').classList.remove('hidden'); RenderUI.renderVillageModal(auth.currentUser.uid); };
-    document.getElementById('btn-guild').onclick = () => { document.getElementById('guild-modal').classList.remove('hidden'); RenderUI.renderGuildModal(); };
+    document.getElementById('btn-guild').onclick = () => { document.getElementById('guild-modal').classList.remove('hidden'); RenderUI.renderGuildModal('quests'); };
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => { btn.onclick = () => closeAllModals(); });
 
     document.getElementById('tab-subs').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'subs');
     document.getElementById('tab-exped').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'exped');
     
-    // Substitua esta linha antiga por essa nova que lida com IDs dinâmicos
     const marketTab = document.getElementById('tab-upgrades') || document.getElementById('tab-market');
     if (marketTab) marketTab.onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'market');
     
     document.getElementById('tab-map').onclick = () => RenderUI.renderVillageModal(auth.currentUser.uid, 'map');
     
+    // NOVO: Navegação das Abas da Guilda
+    document.getElementById('tab-quests').onclick = () => RenderUI.renderGuildModal('quests');
+    document.getElementById('tab-ranking').onclick = async () => {
+        RenderUI.renderGuildModal('ranking', null); // Mostra o "Carregando"
+        const { getLeaderboard } = await import('./modules/player.js');
+        const lbData = await getLeaderboard();
+        RenderUI.renderGuildModal('ranking', lbData); // Renderiza a lista
+    };
+
     document.getElementById('btn-send-chat').onclick = () => processChatInput();
     document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') processChatInput(); });
 
