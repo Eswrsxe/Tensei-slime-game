@@ -32,7 +32,7 @@ export const GAME_CONFIG = {
         HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2, img: "https://s10.aconvert.com/convert/p3r68-cdx67/am7kk-pr3q7.png" },
         STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4, img: "https://s10.aconvert.com/convert/p3r68-cdx67/at50p-5b8es.png" },
         DRAGONEWT: { id: 'mob_003_evo', name: 'Dragonewt', bonus_atk: 12, bonus_def: 10, img: "https://s10.aconvert.com/convert/p3r68-cdx67/aa6kv-k0lji.png" },
-        HIGH_ORC: { id: 'mob_004_evo', name: 'High Orc', bonus_atk: 25, bonus_def: 8, img: "https://placehold.co/40x40/ff7b72/ffffff?text=HO" }
+        HIGH_ORC: { id: 'mob_004_evo', name: 'High Orc', bonus_atk: 25, bonus_def: 8, img: "https://s10.aconvert.com/convert/p3r68-cdx67/apcsu-dcs64.png" }
     },
 
     EVENTS: [
