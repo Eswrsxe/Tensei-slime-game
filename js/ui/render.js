@@ -318,4 +318,23 @@ export const RenderUI = {
             } else if (activeTab === 'map') {
                 const toggleDiv = document.createElement('div');
                 toggleDiv.className = 'item-slot';
-                toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance 
+                toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance ? '#3fb950' : '#da3633'};">${PlayerState.auto_advance ? 'LIGADO' : 'DESLIGADO'}</button>`;
+                toggleDiv.querySelector('.use-btn').onclick = () => VillageSystem.toggleAutoAdvance(playerId);
+                container.appendChild(toggleDiv);
+
+                Object.keys(GAME_CONFIG.ZONES).forEach(zId => {
+                    const zoneId = parseInt(zId);
+                    if (zoneId <= PlayerState.highest_zone) {
+                        const zone = GAME_CONFIG.ZONES[zoneId];
+                        const isActive = PlayerState.current_zone === zoneId;
+                        const div = document.createElement('div');
+                        div.className = 'item-slot';
+                        div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:${isActive ? '#58a6ff' : '#c9d1d9'}">${zone.name}</span><span class="item-desc">Área Desbloqueada</span></div><button class="use-btn" style="background:${isActive ? '#21262d' : '#1f6feb'}; color:${isActive ? '#8b949e' : '#fff'};" ${isActive ? 'disabled' : ''}>${isActive ? 'Atual' : 'Viajar'}</button>`;
+                        if (!isActive) div.querySelector('.use-btn').onclick = () => VillageSystem.travelToZone(playerId, zoneId);
+                        container.appendChild(div);
+                    }
+                });
+            }
+        });
+    }
+}; 
