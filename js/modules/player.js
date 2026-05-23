@@ -1,5 +1,6 @@
 import { db } from '../firebase.js';
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { RenderUI } from '../ui/render.js';
 import { GAME_CONFIG } from '../data/gameConfig.js';
 import { GreatSage } from './greatsage.js';
@@ -30,8 +31,6 @@ export async function initPlayer(uid) {
         if (PlayerState.auto_advance === undefined) { PlayerState.auto_advance = true; needsUpdate = true; }
         if (!PlayerState.quests) { PlayerState.quests = []; needsUpdate = true; }
         if (PlayerState.has_seen_tutorial === undefined) { PlayerState.has_seen_tutorial = false; needsUpdate = true; }
-        
-        // NOVO: Geração Retroativa de Player ID
         if (!PlayerState.player_tag) { PlayerState.player_tag = generatePlayerTag(); needsUpdate = true; }
         
         if (needsUpdate) await setDoc(playerRef, PlayerState, { merge: true });
@@ -50,6 +49,31 @@ export async function initPlayer(uid) {
     
     RenderUI.updateHUD(PlayerState);
     RenderUI.updateZoneUI(PlayerState.current_zone);
+}
+
+// NOVO: Função para buscar o Top 50 Global no Firebase
+export async function getLeaderboard() {
+    try {
+        const playersRef = collection(db, "player_core");
+        // Ordena por Nível decrescente e limita aos 50 melhores
+        const q = query(playersRef, orderBy("level", "desc"), limit(50));
+        const snapshot = await getDocs(q);
+        
+        let leaderboard = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            leaderboard.push({
+                name: data.name || "Slime",
+                tag: data.player_tag || "#----",
+                level: data.level || 1,
+                rank: data.rank || 0
+            });
+        });
+        return leaderboard;
+    } catch (e) {
+        console.error("Erro ao buscar o Ranking: ", e);
+        return [];
+    }
 }
 
 export async function addExperience(playerId, amount) {
