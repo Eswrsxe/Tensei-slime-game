@@ -27,7 +27,7 @@ export const GAME_CONFIG = {
     ENEMIES: {
         GOBLIN: { id: 'mob_001', name: 'Goblin', hp_max: 30, base_damage: 3, exp_reward: 15, naming_cost: 5, bonus_atk: 2, bonus_def: 0, drop_coins: 20, img: "https://s10.aconvert.com/convert/p3r68-cdx67/a2juc-sy34b.png" },
         DIREWOLF: { id: 'mob_002', name: 'Direwolf', hp_max: 60, base_damage: 8, exp_reward: 35, naming_cost: 15, bonus_atk: 5, bonus_def: 0, drop_coins: 55, img: "https://s10.aconvert.com/convert/p3r68-cdx67/ac8i2-8thiu.png" },
-        LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120, img: "https://placehold.co/40x40/e3b341/ffffff?text=LZ" },
+        LIZARDMAN: { id: 'mob_003', name: 'Lizardman', hp_max: 90, base_damage: 12, exp_reward: 60, naming_cost: 25, bonus_atk: 3, bonus_def: 3, drop_coins: 120, img: "https://s10.aconvert.com/convert/p3r68-cdx67/ajhfv-sxi76.png" },
         ORC: { id: 'mob_004', name: 'Orc', hp_max: 150, base_damage: 18, exp_reward: 100, naming_cost: 40, bonus_atk: 8, bonus_def: 1, drop_coins: 350, img: "https://placehold.co/40x40/da3633/ffffff?text=OR" },
         HOBGOBLIN: { id: 'mob_001_evo', name: 'Hobgoblin', bonus_atk: 8, bonus_def: 2, img: "https://placehold.co/40x40/2ea043/ffffff?text=HG" },
         STARWOLF: { id: 'mob_002_evo', name: 'Tempest Star Wolf', bonus_atk: 15, bonus_def: 4, img: "https://placehold.co/40x40/8b949e/ffffff?text=SW" },
