@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tensei Slime: v5.1 (Visual Update)</title>
+    <title>Tensei Slime: v6.0 (Tábua de Líderes Global)</title>
     <link rel="stylesheet" href="styles.css">
     <style>.hidden { display: none !important; }</style>
 </head>
@@ -74,7 +74,17 @@
             </div>
         </div>
 
-        <div id="guild-modal" class="modal hidden"><div class="modal-content"><h3 style="color: #f778ba;">Associação de Aventureiros</h3><div id="quest-list" class="item-grid"></div><button class="action-btn btn-close-modal" style="width:100%;">Fechar</button></div></div>
+        <div id="guild-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 style="color: #f778ba;">Associação de Aventureiros</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="tab-quests" class="tab-btn active" style="flex:1;">Missões</button>
+                    <button id="tab-ranking" class="tab-btn" style="flex:1;">Ranking Global</button>
+                </div>
+                <div id="quest-list" class="item-grid"></div>
+                <button class="action-btn btn-close-modal" style="width:100%;">Fechar</button>
+            </div>
+        </div>
 
         <footer id="action-panel">
             <button id="btn-attack" class="action-btn">Atacar</button>
