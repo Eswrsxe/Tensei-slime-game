@@ -68,6 +68,7 @@ export const GAME_CONFIG = {
     TUTORIAL_EVENT: {
         id: 'evt_tutorial',
         npc: 'Voz Misteriosa',
+        img: 'https://placehold.co/40x40/d2a8ff/ffffff?text=VM', // Substitua pelo link da imagem da Voz/Raphael
         text: '"Você reencarnou neste mundo. Sua jornada para construir uma nação de monstros começa agora. Deseja ouvir as instruções básicas?"',
         options: {
             'A': { text: '"Sim, como eu sobrevivo?"', response: '"Derrote monstros. Use o [Estômago] para equipar armas e [Tempest] para gerenciar sua vila. Pegue este presente."', reward_coins: 1000, reward_pots: 10 },
