@@ -39,6 +39,7 @@ export const GAME_CONFIG = {
         {
             id: 'evt_mercador',
             npc: 'Mercador Errante',
+            img: 'https://placehold.co/40x40/e69138/ffffff?text=ME', // Substitua pelo link da imagem do Mercador
             text: '"Saudações, ser poderoso! Os Goblins estão roubando minha carga na Caverna. Pode me ajudar a derrotar 10 deles?"',
             options: {
                 'A': { text: '"Sim, eu resolvo isso."', response: '"Maravilhoso! Lhe pagarei bem."', quest: 'q_goblins' },
@@ -49,6 +50,7 @@ export const GAME_CONFIG = {
         {
             id: 'evt_espirito',
             npc: 'Espírito da Floresta',
+            img: 'https://placehold.co/40x40/3fb950/ffffff?text=EF', // Substitua pelo link da imagem do Espírito
             text: '"A Floresta de Jura chora... Os Direwolves estão fora de controle. Purifique 5 deles para mim?"',
             options: {
                 'A': { text: '"Deixe comigo."', response: '"A floresta agradece."', quest: 'q_lobos' },
