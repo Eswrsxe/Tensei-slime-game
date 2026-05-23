@@ -22,11 +22,9 @@ export const RenderUI = {
         document.getElementById('player-name').innerText = playerState.isNamed ? playerState.name : rankData.name;
         document.getElementById('player-name').style.color = rankData.color || '#c9d1d9';
         
-        // Avatar do HUD
         const avatarEl = document.getElementById('player-avatar');
         if (avatarEl) avatarEl.src = rankData.img;
 
-        // Tag de Aventureiro
         const tagElement = document.getElementById('player-tag');
         if (tagElement) tagElement.innerText = playerState.player_tag || '#----';
 
@@ -102,32 +100,77 @@ export const RenderUI = {
         `;
     },
 
-    renderGuildModal() {
+    // NOVO: Gerenciador de Abas do Menu da Guilda
+    renderGuildModal(activeTab = 'quests', leaderboardData = null) {
         const container = document.getElementById('quest-list');
         container.innerHTML = '';
-        if (!PlayerState.quests || PlayerState.quests.length === 0) {
-            return container.innerHTML = '<p style="color:#8b949e; font-size:12px;">Nenhuma missão ativa no momento.</p>';
-        }
+        
+        document.getElementById('tab-quests').classList.toggle('active', activeTab === 'quests');
+        document.getElementById('tab-ranking').classList.toggle('active', activeTab === 'ranking');
 
-        PlayerState.quests.forEach(quest => {
-            const qData = GAME_CONFIG.QUESTS[quest.id];
-            if (!qData) return;
-            const pct = Math.floor((quest.progress / qData.required) * 100);
-            
-            const div = document.createElement('div');
-            div.className = 'item-slot';
-            div.innerHTML = `
-                <div class="item-info" style="flex:1;">
-                    <span class="item-name" style="color:#f778ba;">${qData.name}</span>
-                    <span class="item-desc">${qData.desc}</span>
-                    <div style="width: 100%; background: #21262d; border-radius: 3px; margin-top: 5px; height: 5px;">
-                        <div style="width: ${pct}%; background: #f778ba; height: 100%; border-radius: 3px;"></div>
+        if (activeTab === 'quests') {
+            if (!PlayerState.quests || PlayerState.quests.length === 0) {
+                return container.innerHTML = '<p style="color:#8b949e; font-size:12px;">Nenhuma missão ativa no momento.</p>';
+            }
+
+            PlayerState.quests.forEach(quest => {
+                const qData = GAME_CONFIG.QUESTS[quest.id];
+                if (!qData) return;
+                const pct = Math.floor((quest.progress / qData.required) * 100);
+                
+                const div = document.createElement('div');
+                div.className = 'item-slot';
+                div.innerHTML = `
+                    <div class="item-info" style="flex:1;">
+                        <span class="item-name" style="color:#f778ba;">${qData.name}</span>
+                        <span class="item-desc">${qData.desc}</span>
+                        <div style="width: 100%; background: #21262d; border-radius: 3px; margin-top: 5px; height: 5px;">
+                            <div style="width: ${pct}%; background: #f778ba; height: 100%; border-radius: 3px;"></div>
+                        </div>
+                        <span style="font-size: 10px; color: #8b949e;">Progresso: ${quest.progress}/${qData.required}</span>
                     </div>
-                    <span style="font-size: 10px; color: #8b949e;">Progresso: ${quest.progress}/${qData.required}</span>
-                </div>
-            `;
-            container.appendChild(div);
-        });
+                `;
+                container.appendChild(div);
+            });
+        } 
+        else if (activeTab === 'ranking') {
+            if (!leaderboardData) {
+                return container.innerHTML = '<p style="color:#8b949e; font-size:12px; text-align:center;">Carregando os Maiores Lordes do Mundo...</p>';
+            }
+            if (leaderboardData.length === 0) {
+                return container.innerHTML = '<p style="color:#8b949e; font-size:12px; text-align:center;">Nenhum Aventureiro registrado ainda.</p>';
+            }
+
+            // Renderiza o Top Global
+            leaderboardData.forEach((player, index) => {
+                const rankData = GAME_CONFIG.RANKS[player.rank || 0];
+                const isMe = player.tag === PlayerState.player_tag;
+                
+                // Cores do Pódio
+                let posColor = '#8b949e'; 
+                if (index === 0) posColor = '#ffd700'; // Ouro
+                else if (index === 1) posColor = '#c0c0c0'; // Prata
+                else if (index === 2) posColor = '#cd7f32'; // Bronze
+
+                const div = document.createElement('div');
+                div.className = 'item-slot';
+                div.style.border = isMe ? '1px solid #ffd700' : '1px solid #30363d'; // Borda dourada se for você
+                div.style.background = isMe ? 'rgba(255, 215, 0, 0.05)' : 'var(--panel-bg)';
+
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px; width:100%;">
+                        <span style="color:${posColor}; font-weight:bold; font-size:18px; width: 25px; text-align: center;">#${index + 1}</span>
+                        <img src="${rankData.img}" style="width:30px; height:30px; border-radius:4px; border:1px solid ${rankData.color || '#30363d'};">
+                        <div class="item-info" style="flex:1;">
+                            <span class="item-name" style="color: ${rankData.color || '#c9d1d9'};">${player.name} <span style="color:#8b949e; font-size:10px; font-family:monospace;">${player.tag}</span></span>
+                            <span class="item-desc">${rankData.name}</span>
+                        </div>
+                        <div style="font-weight:bold; color:#58a6ff; font-size:16px;">Lvl ${player.level}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
     },
 
     renderFormsModal(playerId) {
@@ -275,23 +318,4 @@ export const RenderUI = {
             } else if (activeTab === 'map') {
                 const toggleDiv = document.createElement('div');
                 toggleDiv.className = 'item-slot';
-                toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance ? '#3fb950' : '#da3633'};">${PlayerState.auto_advance ? 'LIGADO' : 'DESLIGADO'}</button>`;
-                toggleDiv.querySelector('.use-btn').onclick = () => VillageSystem.toggleAutoAdvance(playerId);
-                container.appendChild(toggleDiv);
-
-                Object.keys(GAME_CONFIG.ZONES).forEach(zId => {
-                    const zoneId = parseInt(zId);
-                    if (zoneId <= PlayerState.highest_zone) {
-                        const zone = GAME_CONFIG.ZONES[zoneId];
-                        const isActive = PlayerState.current_zone === zoneId;
-                        const div = document.createElement('div');
-                        div.className = 'item-slot';
-                        div.innerHTML = `<div class="item-info" style="flex:1;"><span class="item-name" style="color:${isActive ? '#58a6ff' : '#c9d1d9'}">${zone.name}</span><span class="item-desc">Área Desbloqueada</span></div><button class="use-btn" style="background:${isActive ? '#21262d' : '#1f6feb'}; color:${isActive ? '#8b949e' : '#fff'};" ${isActive ? 'disabled' : ''}>${isActive ? 'Atual' : 'Viajar'}</button>`;
-                        if (!isActive) div.querySelector('.use-btn').onclick = () => VillageSystem.travelToZone(playerId, zoneId);
-                        container.appendChild(div);
-                    }
-                });
-            }
-        });
-    }
-};
+                toggleDiv.innerHTML = `<div class="item-info"><span class="item-name">Avanço Automático de Zona</span><span class="item-desc">Avança ao derrotar o Chefe. Desligue para Farmar.</span></div><button class="use-btn" style="background: ${PlayerState.auto_advance 
