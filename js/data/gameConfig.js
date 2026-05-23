@@ -6,7 +6,7 @@ export const GAME_CONFIG = {
     RANKS: {
         0: { name: "Slime Base", stat_mult: 1, req_lvl: 0, img: "https://s10.aconvert.com/convert/p3r68-cdx67/apana-80p5f.png" },
         1: { name: "Demon Slime", stat_mult: 2, req_lvl: 50, color: "#d2a8ff", img: "https://s10.aconvert.com/convert/p3r68-cdx67/a7y7u-9zi95.png" },
-        2: { name: "Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700", img: "https://placehold.co/40x40/ffd700/000000?text=DL" }
+        2: { name: "Demon Lord", stat_mult: 5, req_lvl: 100, color: "#ffd700", img: "https://s10.aconvert.com/convert/p3r68-cdx67/ajysw-x87td.png" }
     },
 
     ZONES: {
