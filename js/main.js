@@ -106,15 +106,18 @@ function startNewEncounter() {
 // MOTOR DE EVENTOS DE TEXTO E TUTORIAL
 function triggerTutorialEvent() {
     activeEvent = GAME_CONFIG.TUTORIAL_EVENT;
-    activeEvent.isTutorial = true; // Marca que é um tutorial
+    activeEvent.isTutorial = true; 
     
     document.getElementById('btn-attack').disabled = true;
     document.getElementById('btn-defend').disabled = true;
     document.getElementById('btn-magic').disabled = true;
     document.getElementById('chat-panel').classList.remove('hidden');
 
+    // Injeta a imagem do NPC se ela existir
+    const npcImg = activeEvent.img ? `<img src="${activeEvent.img}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #30363d;">` : '';
+
     RenderUI.log(`《 Grande Sábio 》 Uma voz ecoa em sua consciência recém-formada...`, "sage");
-    RenderUI.log(`[NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
+    RenderUI.log(`${npcImg} [NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
     RenderUI.log(`[A] ${activeEvent.options['A'].text}`, "system");
     RenderUI.log(`[B] ${activeEvent.options['B'].text}`, "system");
     RenderUI.log(`[C] ${activeEvent.options['C'].text}`, "system");
@@ -129,8 +132,11 @@ function triggerRandomEvent() {
     document.getElementById('btn-magic').disabled = true;
     document.getElementById('chat-panel').classList.remove('hidden');
 
+    // Injeta a imagem do NPC se ela existir
+    const npcImg = activeEvent.img ? `<img src="${activeEvent.img}" style="width:18px; height:18px; border-radius:50%; vertical-align:middle; margin:0 4px; border:1px solid #30363d;">` : '';
+
     RenderUI.log(`《 Grande Sábio 》 Uma presença se aproxima pacificamente...`, "sage");
-    RenderUI.log(`[NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
+    RenderUI.log(`${npcImg} [NPC] ${activeEvent.npc}: ${activeEvent.text}`, "info");
     RenderUI.log(`[A] ${activeEvent.options['A'].text}`, "system");
     RenderUI.log(`[B] ${activeEvent.options['B'].text}`, "system");
     RenderUI.log(`[C] ${activeEvent.options['C'].text}`, "system");
